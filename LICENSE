@@ -1,6 +1,21 @@
-MIT License
+Tencent is pleased to support the open source community by making IoT Hub available.  
 
-Copyright (c) 2021 xyfancy
+Copyright (C) 2021 THL A29 Limited, a Tencent company.  All rights reserved.
+
+If you have downloaded a copy of the IoT Hub binary from Tencent, please note that the IoT Hub binary is licensed under the MIT License.
+
+If you have downloaded a copy of the IoT Hub source code from Tencent, please note that IoT Hub source code is licensed under the MIT License, 
+
+except for the third-party components listed below which are subject to different license terms.  Your integration of IoT Hub into your own projects may require compliance with the MIT License, 
+
+as well as the other licenses applicable to the third-party components included within IoT Hub.
+
+A copy of the MIT License is included in this file.
+
+--------------------------------------------------------------------
+
+Terms of the MIT License:
+--------------------------------------------------------------------
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
