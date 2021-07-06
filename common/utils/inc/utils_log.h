@@ -26,8 +26,8 @@
  * </table>
  */
 
-#ifndef QCLOUD_IOT_HUB_SDK_EMBEDDED_C_COMMON_UTILS_INC_UTILS_LOG_H_
-#define QCLOUD_IOT_HUB_SDK_EMBEDDED_C_COMMON_UTILS_INC_UTILS_LOG_H_
+#ifndef IOT_HUB_DEVICE_C_SDK_COMMON_UTILS_INC_UTILS_LOG_H_
+#define IOT_HUB_DEVICE_C_SDK_COMMON_UTILS_INC_UTILS_LOG_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -113,4 +113,4 @@ void utils_log_gen(const char *file, const char *func, const int line, const int
 }
 #endif
 
-#endif  // QCLOUD_IOT_HUB_SDK_EMBEDDED_C_COMMON_UTILS_INC_UTILS_LOG_H_
+#endif  // IOT_HUB_DEVICE_C_SDK_COMMON_UTILS_INC_UTILS_LOG_H_

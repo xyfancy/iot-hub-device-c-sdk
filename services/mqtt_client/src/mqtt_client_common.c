@@ -114,8 +114,6 @@ int send_mqtt_packet(Qcloud_IoT_Client *client, size_t length)
 {
     IOT_FUNC_ENTRY;
 
-    NUMBERIC_SANITY_CHECK(length, QCLOUD_ERR_INVAL);
-
     int    rc       = QCLOUD_RET_SUCCESS;
     size_t sent_len = 0, sent = 0;
     Timer  timer;

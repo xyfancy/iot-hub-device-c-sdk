@@ -26,8 +26,8 @@
  * </table>
  */
 
-#ifndef QCLOUD_IOT_HUB_SDK_EMBEDDED_C_COMMON_CRYPTOLOGY_INC_UTILS_HMAC_H_
-#define QCLOUD_IOT_HUB_SDK_EMBEDDED_C_COMMON_CRYPTOLOGY_INC_UTILS_HMAC_H_
+#ifndef IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_HMAC_H_
+#define IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_HMAC_H_
 
 #include <string.h>
 
@@ -45,4 +45,4 @@
  */
 int utils_hmac_sha1(const char *msg, int msg_len, const uint8_t *key, int key_len, char *digest);
 
-#endif  // QCLOUD_IOT_HUB_SDK_EMBEDDED_C_COMMON_CRYPTOLOGY_INC_UTILS_HMAC_H_
+#endif  // IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_HMAC_H_

@@ -26,8 +26,8 @@
  * </table>
  */
 
-#ifndef QCLOUD_IOT_HUB_SDK_EMBEDDED_C_COMMON_CRYPTOLOGY_INC_UTILS_SHA1_H_
-#define QCLOUD_IOT_HUB_SDK_EMBEDDED_C_COMMON_CRYPTOLOGY_INC_UTILS_SHA1_H_
+#ifndef IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_SHA1_H_
+#define IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_SHA1_H_
 
 #include <stdint.h>
 #include <stdlib.h>
@@ -98,4 +98,4 @@ void utils_sha1_finish(iot_sha1_context *ctx, unsigned char output[20]);
  */
 void utils_sha1(const unsigned char *input, size_t ilen, unsigned char output[20]);
 
-#endif  // QCLOUD_IOT_HUB_SDK_EMBEDDED_C_COMMON_CRYPTOLOGY_INC_UTILS_SHA1_H_
+#endif  // IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_SHA1_H_

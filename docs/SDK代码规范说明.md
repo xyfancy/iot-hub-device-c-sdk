@@ -10,12 +10,12 @@
 
 头文件应支持c++引用，并提供保护头，根据开源治理要求，本项目中保护头定义如下：
 
-`QCLOUD_IOT_HUB_SDK_EMBEDDED_C_<dir_path>_INC_<file_name>_`
+`IOT_HUB_DEVICE_C_SDK_<dir_path>_INC_<file_name>_`
 
 比如 `mqtt_client.h`：
 ```
-#ifndef QCLOUD_IOT_HUB_SDK_EMBEDDED_C_SERVICES_MQTT_CLIENT_INC_MQTT_CLIENT_H_
-#define QCLOUD_IOT_HUB_SDK_EMBEDDED_C_SERVICES_MQTT_CLIENT_INC_MQTT_CLIENT_H_
+#ifndef IOT_HUB_DEVICE_C_SDK_SERVICES_MQTT_CLIENT_INC_MQTT_CLIENT_H_
+#define IOT_HUB_DEVICE_C_SDK_SERVICES_MQTT_CLIENT_INC_MQTT_CLIENT_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,7 +26,7 @@ extern "C" {
 }
 #endif
 
-#endif  // QCLOUD_IOT_HUB_SDK_EMBEDDED_C_SERVICES_MQTT_CLIENT_INC_MQTT_CLIENT_H_
+#endif  // IOT_HUB_DEVICE_C_SDK_SERVICES_MQTT_CLIENT_INC_MQTT_CLIENT_H_
 ```
 
 

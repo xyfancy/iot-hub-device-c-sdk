@@ -380,7 +380,6 @@ int IOT_MQTT_Destroy(void **client)
 int IOT_MQTT_Yield(void *client, uint32_t timeout_ms)
 {
     POINTER_SANITY_CHECK(client, QCLOUD_ERR_INVAL);
-    NUMBERIC_SANITY_CHECK(timeout_ms, QCLOUD_ERR_INVAL);
     Qcloud_IoT_Client *mqtt_client = (Qcloud_IoT_Client *)client;
     return qcloud_iot_mqtt_yield(mqtt_client, timeout_ms);
 }
