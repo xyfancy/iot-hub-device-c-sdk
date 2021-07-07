@@ -56,9 +56,9 @@ class UtilsListTest : public testing::Test {
     ASSERT_NE(self_list, nullptr);
 
     for (int i = 0; i < 10;) {
-      int *val = (int *)HAL_Malloc(sizeof(int));
+      int *val = reinterpret_cast<int *>(HAL_Malloc(sizeof(int)));
       *val = i++;
-      ASSERT_NE(utils_list_push(self_list, (void *)val), nullptr);
+      ASSERT_NE(utils_list_push(self_list, reinterpret_cast<void *>(val)), nullptr);
       ASSERT_EQ(utils_list_len_get(self_list), i);
     }
   }
@@ -73,7 +73,7 @@ class UtilsListTest : public testing::Test {
  *
  */
 TEST_F(UtilsListTest, list) {
-  ASSERT_EQ(utils_list_push(self_list, (void *)1), nullptr);
+  ASSERT_EQ(utils_list_push(self_list, reinterpret_cast<void *>(1)), nullptr);
 
   for (int i = 0; i < 10; i++) {
     ASSERT_EQ(utils_list_len_get(self_list), 10 - i);
