@@ -13,16 +13,16 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file test_mqtt_packet.cc
- * @brief unit test for mqtt packet
+ * @file test_utils.cc
+ * @brief unittest for utils
  * @author fancyxu (fancyxu@tencent.com)
  * @version 1.0
- * @date 2021-06-01
+ * @date 2021-07-07
  *
  * @par Change Log:
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
- * <tr><td>2021-06-01 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-07 <td>1.0     <td>fancyxu   <td>first commit
  * </table>
  */
 
