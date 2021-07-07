@@ -29,6 +29,10 @@
 #ifndef IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_SHA1_H_
 #define IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_SHA1_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -97,5 +101,9 @@ void utils_sha1_finish(iot_sha1_context *ctx, unsigned char output[20]);
  * @param[out] output SHA-1 checksum result
  */
 void utils_sha1(const unsigned char *input, size_t ilen, unsigned char output[20]);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_SHA1_H_

@@ -29,6 +29,10 @@
 #ifndef IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_HMAC_H_
 #define IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_HMAC_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <string.h>
 
 #include "utils_sha1.h"
@@ -44,5 +48,9 @@
  * @return 0 for success
  */
 int utils_hmac_sha1(const char *msg, int msg_len, const uint8_t *key, int key_len, char *digest);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  // IOT_HUB_DEVICE_C_SDK_COMMON_CRYPTOLOGY_INC_UTILS_HMAC_H_
