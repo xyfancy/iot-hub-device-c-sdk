@@ -46,10 +46,12 @@ apt-get install cmake gcc g++
 参考[设备接入准备](https://cloud.tencent.com/document/product/634/14442#null)创建**密钥认证**设备，获取设备信息用作连接平台。
 
 - 产品ID
-![](https://main.qcloudimg.com/raw/a746d4e9455f045b5e65ba870f269e7d.png)
+
+![product_id](https://main.qcloudimg.com/raw/a746d4e9455f045b5e65ba870f269e7d.png)
 
 - 设备名和设备密钥
-![](https://main.qcloudimg.com/raw/e73b71b952fbb84a6d924882547921fa.png)
+
+![device_name&psk](https://main.qcloudimg.com/raw/e73b71b952fbb84a6d924882547921fa.png)
 
 ### 3. 修改设备信息
 
@@ -60,7 +62,6 @@ static char sg_product_id[MAX_SIZE_OF_PRODUCT_ID + 1] = "YOUR_PRODUCT_ID";
 static char sg_device_name[MAX_SIZE_OF_DEVICE_NAME + 1] = "YOUR_DEVICE_NAME";
 static char sg_device_secret[MAX_SIZE_OF_DEVICE_SECRET + 1] = "YOUR_IOT_PSK";
 ```
-
 
 ### 4. 编译运行
 
@@ -164,4 +165,3 @@ set(CONFIG_IOT_TEST ON)
 2. [googletest](https://github.com/google/googletest)
 3. [git 基本技能学习](https://github.com/xyfancy/GitBasicSkills)
 4. [mbedtls](https://github.com/ARMmbed/mbedtls)
-
