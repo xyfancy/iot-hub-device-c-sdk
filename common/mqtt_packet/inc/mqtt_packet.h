@@ -230,21 +230,20 @@ int mqtt_publish_packet_serialize(uint8_t* buf, int buf_len, const MQTTPublishFl
  * @param[in] packet_id integer - the MQTT packet identifier
  * @return serialized length, or error if <= 0
  */
-int mqtt_puback_packet_serialize(uint8_t* buf, int buf_len, uint8_t dup, uint16_t packet_id);
+int mqtt_puback_packet_serialize(uint8_t* buf, int buf_len, uint16_t packet_id);
 
 /**
  * @brief Serialize the supplied subscribe data into the supplied buffer, ready for sending. See 3.8.
  *
  * @param[out] buf the buffer into which the packet will be serialized
  * @param[in] buf_len the length in bytes of the supplied bufferr
- * @param[in] dup integer - the MQTT dup flag
  * @param[in] packet_id integer - the MQTT packet identifier
  * @param[in] count - number of members in the topicFilters and reqQos arrays
  * @param[in] topic_filters - array of topic filter names
  * @param[in] requested_qos - array of requested QoS
  * @return serialized length, or error if <= 0
  */
-int mqtt_subscribe_packet_serialize(uint8_t* buf, int buf_len, uint8_t dup, uint16_t packet_id, uint32_t count,
+int mqtt_subscribe_packet_serialize(uint8_t* buf, int buf_len, uint16_t packet_id, uint32_t count,
                                     char* topic_filters[], const int requested_qos[]);
 
 /**
@@ -252,14 +251,12 @@ int mqtt_subscribe_packet_serialize(uint8_t* buf, int buf_len, uint8_t dup, uint
  *
  * @param[out] buf the raw buffer data, of the correct length determined by the remaining length field
  * @param[in] buf_len the length in bytes of the data in the supplied buffer
- * @param[in] dup integer - the MQTT dup flag
  * @param[in] packet_id integer - the MQTT packet identifier
  * @param[in] count - number of members in the topicFilters array
  * @param[in] topic_filters - array of topic filter names
  * @return serialized length, or error if <= 0
  */
-int mqtt_unsubscribe_packet_serialize(uint8_t* buf, int buf_len, uint8_t dup, uint16_t packet_id, int count,
-                                      char* topic_filters[]);
+int mqtt_unsubscribe_packet_serialize(uint8_t* buf, int buf_len, uint16_t packet_id, int count, char* topic_filters[]);
 
 /**
  * @brief Deserialize the supplied (wire) buffer into connack data. See 3.2.
@@ -302,11 +299,10 @@ int mqtt_publish_packet_deserialize(uint8_t* buf, int buf_len, MQTTPublishFlags*
  *
  * @param[in] buf the raw buffer data, of the correct length determined by the remaining length field
  * @param[in] buf_len the length in bytes of the data in the supplied buffer
- * @param[out] dup returned integer - the MQTT dup flag
  * @param[out] packet_id returned integer - the MQTT packet identifier
  * @return @see MQTTPacketErrCode
  */
-int mqtt_puback_packet_deserialize(uint8_t* buf, int buf_len, uint8_t* dup, uint16_t* packet_id);
+int mqtt_puback_packet_deserialize(uint8_t* buf, int buf_len, uint16_t* packet_id);
 
 /**
  * @brief Deserialize the supplied (wire) buffer into suback data. See 3.9.

@@ -212,7 +212,7 @@ int qcloud_iot_mqtt_subscribe(Qcloud_IoT_Client *client, const char *topic_filte
     Log_d("subscribe topic_name=%s|packet_id=%d", topic_filter_stored, packet_id);
     // serialize packet
     HAL_MutexLock(client->lock_write_buf);
-    packet_len = mqtt_subscribe_packet_serialize(client->write_buf, client->write_buf_size, 0, packet_id, 1,
+    packet_len = mqtt_subscribe_packet_serialize(client->write_buf, client->write_buf_size, packet_id, 1,
                                                  &topic_filter_stored, &qos);
     if (packet_len < 0) {
         HAL_MutexUnlock(client->lock_write_buf);
@@ -334,7 +334,7 @@ int qcloud_iot_mqtt_unsubscribe(Qcloud_IoT_Client *client, const char *topic_fil
     Log_d("unsubscribe topic_name=%s|packet_id=%d", topic_filter_stored, packet_id);
 
     HAL_MutexLock(client->lock_write_buf);
-    packet_len = mqtt_unsubscribe_packet_serialize(client->write_buf, client->write_buf_size, 0, packet_id, 1,
+    packet_len = mqtt_unsubscribe_packet_serialize(client->write_buf, client->write_buf_size, packet_id, 1,
                                                    &topic_filter_stored);
     if (packet_len < 0) {
         HAL_MutexUnlock(client->lock_write_buf);

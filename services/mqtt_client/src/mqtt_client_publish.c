@@ -316,7 +316,7 @@ int qcloud_iot_mqtt_handle_publish(Qcloud_IoT_Client *client)
 
     // reply with puback
     HAL_MutexLock(client->lock_write_buf);
-    packet_len = mqtt_puback_packet_serialize(client->write_buf, client->write_buf_size, 0, msg.packet_id);
+    packet_len = mqtt_puback_packet_serialize(client->write_buf, client->write_buf_size, msg.packet_id);
     if (packet_len > 0) {
         rc = send_mqtt_packet(client, packet_len);
     } else {
@@ -338,10 +338,9 @@ int qcloud_iot_mqtt_handle_puback(Qcloud_IoT_Client *client)
 
     int          rc;
     uint16_t     packet_id;
-    uint8_t      dup;
     MQTTEventMsg msg;
 
-    rc = mqtt_puback_packet_deserialize(client->read_buf, client->read_buf_size, &dup, &packet_id);
+    rc = mqtt_puback_packet_deserialize(client->read_buf, client->read_buf_size, &packet_id);
     if (rc) {
         IOT_FUNC_EXIT_RC(rc);
     }

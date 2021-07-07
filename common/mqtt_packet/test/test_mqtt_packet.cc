@@ -186,16 +186,13 @@ TEST(MQTTPacketTest, PUBACK) {
 
   uint8_t packet_buf[128];
 
-  uint8_t serialize_dup = 0;
   uint16_t serialize_packet_id = 28847;
-  ASSERT_EQ(mqtt_puback_packet_serialize(packet_buf, sizeof(packet_buf), serialize_dup, serialize_packet_id), 4);
+  ASSERT_EQ(mqtt_puback_packet_serialize(packet_buf, sizeof(packet_buf), serialize_packet_id), 4);
   ASSERT_EQ(memcmp(packet_buf, test_packet, sizeof(test_packet)), 0);
 
-  uint8_t deserialize_dup;
   uint16_t deserialize_packet_id;
-  ASSERT_EQ(mqtt_puback_packet_deserialize(test_packet, sizeof(test_packet), &deserialize_dup, &deserialize_packet_id),
+  ASSERT_EQ(mqtt_puback_packet_deserialize(test_packet, sizeof(test_packet), &deserialize_packet_id),
             MQTT_RET_PACKET_OK);
-  ASSERT_EQ(deserialize_dup, serialize_dup);
   ASSERT_EQ(deserialize_packet_id, serialize_packet_id);
 }
 
@@ -205,7 +202,7 @@ TEST(MQTTPacketTest, PUBACK) {
  */
 TEST(MQTTPacketTest, SUBSCRIBE) {
   uint8_t test_packet[] = {
-      0x80, 0x19, 0x70, 0xae, 0x00, 0x14, 0x4a, 0x4e, 0x4c, 0x52, 0x57, 0x4f, 0x33, 0x54,
+      0x82, 0x19, 0x70, 0xae, 0x00, 0x14, 0x4a, 0x4e, 0x4c, 0x52, 0x57, 0x4f, 0x33, 0x54,
       0x35, 0x39, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x2f, 0x64, 0x61, 0x74, 0x61, 0x00,
   };
 
@@ -213,12 +210,11 @@ TEST(MQTTPacketTest, SUBSCRIBE) {
 
   std::string topic = "JNLRWO3T59/test/data";
 
-  uint8_t serialize_dup = 0;
   uint16_t serialize_packet_id = 28846;
   char *serialize_topic_name = reinterpret_cast<char *>(const_cast<char *>(topic.c_str()));
   int serialize_qos = 0;
 
-  ASSERT_EQ(mqtt_subscribe_packet_serialize(packet_buf, sizeof(packet_buf), serialize_dup, serialize_packet_id, 1,
+  ASSERT_EQ(mqtt_subscribe_packet_serialize(packet_buf, sizeof(packet_buf), serialize_packet_id, 1,
                                             &serialize_topic_name, &serialize_qos),
             sizeof(test_packet));
   ASSERT_EQ(memcmp(packet_buf, test_packet, sizeof(test_packet)), 0);
@@ -247,17 +243,16 @@ TEST(MQTTPacketTest, SUBACK) {
  */
 TEST(MQTTPacketTest, UNSUBSCRIBE) {
   uint8_t test_packet[] = {
-      0xa0, 0x18, 0x35, 0x74, 0x00, 0x14, 0x4a, 0x4e, 0x4c, 0x52, 0x57, 0x4f, 0x33,
+      0xa2, 0x18, 0x35, 0x74, 0x00, 0x14, 0x4a, 0x4e, 0x4c, 0x52, 0x57, 0x4f, 0x33,
       0x54, 0x35, 0x39, 0x2f, 0x74, 0x65, 0x73, 0x74, 0x2f, 0x64, 0x61, 0x74, 0x61,
   };
 
   uint8_t packet_buf[128];
-  uint8_t dup = 0;
   uint16_t packet_id = 13684;
   std::string topic = "JNLRWO3T59/test/data";
   char *topic_name = reinterpret_cast<char *>(const_cast<char *>(topic.c_str()));
 
-  ASSERT_EQ(mqtt_unsubscribe_packet_serialize(packet_buf, sizeof(packet_buf), dup, packet_id, 1, &topic_name),
+  ASSERT_EQ(mqtt_unsubscribe_packet_serialize(packet_buf, sizeof(packet_buf), packet_id, 1, &topic_name),
             sizeof(test_packet));
   ASSERT_EQ(memcmp(packet_buf, test_packet, sizeof(test_packet)), 0);
 }

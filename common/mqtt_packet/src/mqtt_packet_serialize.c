@@ -82,7 +82,6 @@ static void _mqtt_header_serialize(MQTTPacketType packet_type, const MQTTPublish
     MQTTHeader header = {0};
 
     switch (packet_type) {
-        case PUBACK:
         case PUBLISH:
             header.bits.dup    = pflags->dup;
             header.bits.qos    = pflags->qos;
@@ -90,13 +89,13 @@ static void _mqtt_header_serialize(MQTTPacketType packet_type, const MQTTPublish
             break;
         case SUBSCRIBE:
         case UNSUBSCRIBE:
-            header.byte = 0x10;
+            header.byte = 0x02;
             break;
         default:
             break;
     }
 
-    header.bits.type = packet_type;
+    header.bits.type |= packet_type;
     _write_char(header.byte, pptr); /* write header */
 }
 
@@ -379,19 +378,13 @@ int mqtt_publish_packet_serialize(uint8_t* buf, int buf_len, const MQTTPublishFl
  * @param[in] packet_id integer - the MQTT packet identifier
  * @return serialized length, or error if <= 0
  */
-int mqtt_puback_packet_serialize(uint8_t* buf, int buf_len, uint8_t dup, uint16_t packet_id)
+int mqtt_puback_packet_serialize(uint8_t* buf, int buf_len, uint16_t packet_id)
 {
     SHORT_BUFFER_CHECK(buf_len, MIN_MQTT_FIXED_HEADER_LEN + 2);
 
     uint8_t* ptr = buf;
 
-    MQTTPublishFlags flags = {
-        .dup    = dup,
-        .qos    = 0,
-        .retain = 0,
-    };
-
-    _mqtt_header_serialize(PUBACK, &flags, &ptr);
+    _mqtt_header_serialize(PUBACK, 0, &ptr);
     _mqtt_remaining_length_serialize(2, &ptr);
     _write_int(packet_id, &ptr);
     return ptr - buf;
@@ -402,14 +395,13 @@ int mqtt_puback_packet_serialize(uint8_t* buf, int buf_len, uint8_t dup, uint16_
  *
  * @param[out] buf the buffer into which the packet will be serialized
  * @param[in] buf_len the length in bytes of the supplied bufferr
- * @param[in] dup integer - the MQTT dup flag
  * @param[in] packet_id integer - the MQTT packet identifier
  * @param[in] count - number of members in the topicFilters and reqQos arrays
  * @param[in] topic_filters - array of topic filter names
  * @param[in] requested_qos - array of requested QoS
  * @return serialized length, or error if <= 0
  */
-int mqtt_subscribe_packet_serialize(uint8_t* buf, int buf_len, uint8_t dup, uint16_t packet_id, uint32_t count,
+int mqtt_subscribe_packet_serialize(uint8_t* buf, int buf_len, uint16_t packet_id, uint32_t count,
                                     char* topic_filters[], const int requested_qos[])
 {
     SHORT_BUFFER_CHECK(buf_len, MIN_MQTT_FIXED_HEADER_LEN);
@@ -438,14 +430,12 @@ int mqtt_subscribe_packet_serialize(uint8_t* buf, int buf_len, uint8_t dup, uint
  *
  * @param[out] buf the raw buffer data, of the correct length determined by the remaining length field
  * @param[in] buf_len the length in bytes of the data in the supplied buffer
- * @param[in] dup integer - the MQTT dup flag
  * @param[in] packet_id integer - the MQTT packet identifier
  * @param[in] count - number of members in the topicFilters array
  * @param[in] topic_filters - array of topic filter names
  * @return serialized length, or error if <= 0
  */
-int mqtt_unsubscribe_packet_serialize(uint8_t* buf, int buf_len, uint8_t dup, uint16_t packet_id, int count,
-                                      char* topic_filters[])
+int mqtt_unsubscribe_packet_serialize(uint8_t* buf, int buf_len, uint16_t packet_id, int count, char* topic_filters[])
 {
     SHORT_BUFFER_CHECK(buf_len, MIN_MQTT_FIXED_HEADER_LEN);
 

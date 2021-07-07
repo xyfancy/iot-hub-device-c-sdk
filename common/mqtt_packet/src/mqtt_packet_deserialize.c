@@ -90,7 +90,6 @@ static int _mqtt_packet_type_check(MQTTPacketType packet_type, MQTTPublishFlags*
 
     switch (header.bits.type) {
         case PUBLISH:
-        case PUBACK:
             pflags->dup    = header.bits.dup;
             pflags->qos    = header.bits.qos;
             pflags->retain = header.bits.retain;
@@ -263,24 +262,20 @@ exit:
  *
  * @param[in] buf the raw buffer data, of the correct length determined by the remaining length field
  * @param[in] buf_len the length in bytes of the data in the supplied buffer
- * @param[out] dup returned integer - the MQTT dup flag
  * @param[out] packet_id returned integer - the MQTT packet identifier
  * @return @see MQTTPacketErrCode
  */
-int mqtt_puback_packet_deserialize(uint8_t* buf, int buf_len, uint8_t* dup, uint16_t* packet_id)
+int mqtt_puback_packet_deserialize(uint8_t* buf, int buf_len, uint16_t* packet_id)
 {
     SHORT_BUFFER_CHECK(buf_len, MIN_MQTT_FIXED_HEADER_LEN);
 
-    uint8_t*         ptr   = buf;
-    int              rc    = 0;
-    MQTTPublishFlags flags = {0};
+    uint8_t* ptr = buf;
+    int      rc  = 0;
 
-    rc = _mqtt_packet_type_check(PUBACK, &flags, &ptr);
+    rc = _mqtt_packet_type_check(PUBACK, 0, &ptr);
     if (rc) {
         goto exit;
     }
-
-    *dup = flags.dup;
 
     rc = _mqtt_remaining_length_deserialize(buf_len, NULL, &ptr);
     if (rc) {
