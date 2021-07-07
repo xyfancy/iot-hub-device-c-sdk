@@ -142,9 +142,9 @@ TEST(MQTTPacketTest, PUBLISH) {
                                             &deserialize_payload, &deserialize_payload_len),
             0);
 
-  ASSERT_EQ(deserialize_packet_id == serialize_packet_id, true);
-  ASSERT_EQ(deserialize_topic_len == serialize_topic_len, true);
-  ASSERT_EQ(deserialize_payload_len == serialize_payload_len, true);
+  ASSERT_EQ(deserialize_packet_id, serialize_packet_id);
+  ASSERT_EQ(deserialize_topic_len, serialize_topic_len);
+  ASSERT_EQ(deserialize_payload_len, serialize_payload_len);
 
   ASSERT_EQ(memcmp(&deserialize_flags, &serialize_flags, sizeof(deserialize_flags)), 0);
   ASSERT_EQ(memcmp(deserialize_topic_name, serialize_topic_name, deserialize_topic_len), 0);
@@ -164,7 +164,7 @@ TEST(MQTTPacketTest, PUBLISH) {
                                             &deserialize_topic_name, &deserialize_topic_len, &deserialize_payload,
                                             &deserialize_payload_len),
             MQTT_RET_PACKET_OK);
-  ASSERT_EQ(deserialize_packet_id == serialize_packet_id, false);
+  ASSERT_NE(deserialize_packet_id, serialize_packet_id);
 
   /**
    * @brief bad packet
@@ -195,8 +195,8 @@ TEST(MQTTPacketTest, PUBACK) {
   uint16_t deserialize_packet_id;
   ASSERT_EQ(mqtt_puback_packet_deserialize(test_packet, sizeof(test_packet), &deserialize_dup, &deserialize_packet_id),
             MQTT_RET_PACKET_OK);
-  ASSERT_EQ(deserialize_dup == serialize_dup, true);
-  ASSERT_EQ(deserialize_packet_id == serialize_packet_id, true);
+  ASSERT_EQ(deserialize_dup, serialize_dup);
+  ASSERT_EQ(deserialize_packet_id, serialize_packet_id);
 }
 
 /**
@@ -236,9 +236,9 @@ TEST(MQTTPacketTest, SUBACK) {
   int granted_qos[1];
   ASSERT_EQ(mqtt_suback_packet_deserialize(test_packet, sizeof(test_packet), 1, &sub_count, &packet_id, granted_qos),
             MQTT_RET_PACKET_OK);
-  ASSERT_EQ(sub_count == 1, true);
-  ASSERT_EQ(packet_id == 28846, true);
-  ASSERT_EQ(granted_qos[0] == 0, true);
+  ASSERT_EQ(sub_count, 1);
+  ASSERT_EQ(packet_id, 28846);
+  ASSERT_EQ(granted_qos[0], 0);
 }
 
 /**
@@ -272,7 +272,7 @@ TEST(MQTTPacketTest, UNSUBACK) {
   uint16_t packet_id;
 
   ASSERT_EQ(mqtt_unsuback_packet_deserialize(test_packet, sizeof(test_packet), &packet_id), MQTT_RET_PACKET_OK);
-  ASSERT_EQ(packet_id == 37483, true);
+  ASSERT_EQ(packet_id, 37483);
 }
 
 /**
