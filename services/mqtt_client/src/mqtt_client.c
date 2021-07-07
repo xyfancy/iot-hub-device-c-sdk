@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-07 <td>1.1     <td>fancyxu   <td>support user host for unittest
  * </table>
  */
 
@@ -92,10 +93,15 @@ error:
  *
  * @param[in,out] client pointer to mqtt client
  */
-static void _mqtt_client_network_init(Qcloud_IoT_Client *client)
+static void _mqtt_client_network_init(Qcloud_IoT_Client *client, const MQTTInitParams *params)
 {
-    HAL_Snprintf(client->host_addr, HOST_STR_LENGTH, "%s.%s", client->device_info->product_id,
-                 QCLOUD_IOT_MQTT_DIRECT_DOMAIN);
+    if (params->host) {
+        strncpy(client->host_addr, params->host, HOST_STR_LENGTH);
+    } else {
+        HAL_Snprintf(client->host_addr, HOST_STR_LENGTH, "%s.%s", client->device_info->product_id,
+                     QCLOUD_IOT_MQTT_DIRECT_DOMAIN);
+    }
+
 #ifndef AUTH_WITH_NOTLS
     // device param for TLS connection
 #ifdef AUTH_MODE_CERT
@@ -248,7 +254,7 @@ static int _qcloud_iot_mqtt_client_init(Qcloud_IoT_Client *client, const MQTTIni
         goto error;
     }
 
-    _mqtt_client_network_init(client);
+    _mqtt_client_network_init(client, params);
     IOT_FUNC_EXIT_RC(QCLOUD_RET_SUCCESS);
 
 error:

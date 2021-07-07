@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-07 <td>1.1     <td>fancyxu   <td>support user host for unittest
  * </table>
  */
 
@@ -97,6 +98,7 @@ typedef struct {
  */
 typedef struct {
     DeviceInfo *     device_info;            /**< device info */
+    const char *     host;                   /**< host for user, null for default using QCLOUD_IOT_MQTT_DIRECT_DOMAIN */
     uint32_t         command_timeout;        /**< timeout value (unit: ms) for MQTT connect/pub/sub/yield */
     uint32_t         keep_alive_interval_ms; /**< MQTT keep alive time interval in millisecond */
     uint8_t          clean_session;          /**< flag of clean session, 1 clean, 0 not clean */
@@ -108,9 +110,9 @@ typedef struct {
  * Default MQTT init parameters
  */
 
-#define DEFAULT_MQTT_INIT_PARAMS            \
-    {                                       \
-        NULL, 5000, 240 * 1000, 1, 1, { 0 } \
+#define DEFAULT_MQTT_INIT_PARAMS                  \
+    {                                             \
+        NULL, NULL, 5000, 240 * 1000, 1, 1, { 0 } \
     }
 
 /**

@@ -119,13 +119,13 @@ static char sg_device_secret[MAX_SIZE_OF_DEVICE_SECRET + 1] = "YOUR_IOT_PSK";
 
 ## 五、自动化文档生成
 
-### 1. 安装doxygen
+### 1. 安装 doxygen
 
 ```bash
 apt-get install doxygen graphviz
 ```
 
-### 2. 生成doxygen
+### 2. 生成 doxygen
 
 ```bash
 doxygen Doxyfile
@@ -137,7 +137,7 @@ doxygen Doxyfile
 
 ## 六、单元测试
 
-### 1. 安装google test
+### 1. 安装 google test
 
 ```bash
 apt-get install googletest gcovr
@@ -147,13 +147,20 @@ cd build
 cmake .. && make && make install
 ```
 
-### 2. 打开测试选项
+### 2. 安装并运行 mosquitto
+
+```bash
+apt-get install mosquitto
+mosquitto -c ./config/mosquitto/mosquitto.conf
+```
+
+### 3. 打开测试选项
 
 ```cmake
 set(CONFIG_IOT_TEST ON)
 ```
 
-### 3. 运行单元测试
+### 4. 运行单元测试
 
 ```bash
 ./output/bin/iot_sdk_test
