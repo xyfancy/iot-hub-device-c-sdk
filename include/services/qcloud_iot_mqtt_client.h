@@ -24,6 +24,7 @@
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
  * <tr><td>2021-07-07 <td>1.1     <td>fancyxu   <td>support user host for unittest
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode and QcloudIotClient
  * </table>
  */
 
@@ -213,7 +214,7 @@ void *IOT_MQTT_Construct(const MQTTInitParams *params);
  * @brief Close connection and destroy MQTT client.
  *
  * @param client pointer to mqtt client pointer
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int IOT_MQTT_Destroy(void **pClient);
 
@@ -223,7 +224,7 @@ int IOT_MQTT_Destroy(void **pClient);
  * @param[in,out] client pointer to mqtt client
  * @param[in] timeout_ms timeout value (unit: ms) for this operation
  * @return QCLOUD_RET_SUCCESS when success, QCLOUD_ERR_MQTT_ATTEMPTING_RECONNECT when try reconnecting, others @see
- * IoT_Return_Code
+ * IotReturnCode
  */
 int IOT_MQTT_Yield(void *pClient, uint32_t timeout_ms);
 
@@ -233,7 +234,7 @@ int IOT_MQTT_Yield(void *pClient, uint32_t timeout_ms);
  * @param[in,out] client pointer to mqtt client
  * @param[in] topic_name topic to publish
  * @param[in] params @see PublishParams
- * @return packet id (>=0) when success, or err code (<0) @see IoT_Return_Code
+ * @return packet id (>=0) when success, or err code (<0) @see IotReturnCode
  */
 int IOT_MQTT_Publish(void *client, const char *topic_name, const PublishParams *params);
 
@@ -243,7 +244,7 @@ int IOT_MQTT_Publish(void *client, const char *topic_name, const PublishParams *
  * @param[in,out] client pointer to mqtt client
  * @param[in] topic_filter topic filter to subscribe
  * @param[in] params @see SubscribeParams
- * @return packet id (>=0) when success, or err code (<0) @see IoT_Return_Code
+ * @return packet id (>=0) when success, or err code (<0) @see IotReturnCode
  */
 int IOT_MQTT_Subscribe(void *client, const char *topic_filter, const SubscribeParams *params);
 
@@ -252,7 +253,7 @@ int IOT_MQTT_Subscribe(void *client, const char *topic_filter, const SubscribePa
  *
  * @param[in,out] client pointer to mqtt client
  * @param[in] topic_filter topic filter to unsubscribe
- * @return packet id (>=0) when success, or err code (<0) @see IoT_Return_Code
+ * @return packet id (>=0) when success, or err code (<0) @see IotReturnCode
  */
 int IOT_MQTT_Unsubscribe(void *client, const char *topic_filter);
 

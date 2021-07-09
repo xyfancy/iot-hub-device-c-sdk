@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-31 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode and QcloudIotClient
  * </table>
  */
 
@@ -128,7 +129,7 @@ static void _setup_connect_init_params(MQTTInitParams *initParams, DeviceInfo *d
  * @param[in, out] client pointer to mqtt client
  * @param[in] topic_keyword topic keyword
  * @param[in] qos qos to publish
- * @return packet id (>=0) when success, or err code (<0) @see IoT_Return_Code
+ * @return packet id (>=0) when success, or err code (<0) @see IotReturnCode
  */
 static int _publish_test_msg(void *client, const char *topic_keyword, QoS qos)
 {
@@ -185,7 +186,7 @@ static void _on_message_callback(void *client, MQTTMessage *message, void *user_
  * @param[in, out] client pointer to mqtt client
  * @param[in] topic_keyword topic keyword
  * @param[in] qos qos to subscribe
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 static int _subscribe_topic_wait_result(void *client, char *topic_keyword, QoS qos)
 {
@@ -234,7 +235,7 @@ static int _subscribe_topic_wait_result(void *client, char *topic_keyword, QoS q
  *
  * @param[in, out] client pointer to mqtt client
  * @param[in] topic_keyword topic keyword
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 static int _unsubscribe_topic(void *client, char *topic_keyword)
 {

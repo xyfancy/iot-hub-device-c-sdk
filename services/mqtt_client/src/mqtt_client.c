@@ -24,6 +24,7 @@
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
  * <tr><td>2021-07-07 <td>1.1     <td>fancyxu   <td>support user host for unittest
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode and QcloudIotClient
  * </table>
  */
 
@@ -53,9 +54,9 @@ static uint16_t _get_random_start_packet_id(void)
  * @brief Init list_pub_wait_ack and list_sub_wait_ack
  *
  * @param[in,out] client pointer to mqtt client
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-static int _mqtt_client_list_init(Qcloud_IoT_Client *client)
+static int _mqtt_client_list_init(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
 
@@ -89,11 +90,11 @@ error:
 }
 
 /**
- * @brief Init network, tcp(with AUTH_WITH_NOTLS) or tls.
+ * @brief Init network, tcp(with AUTH_WITH_NO_TLS) or tls.
  *
  * @param[in,out] client pointer to mqtt client
  */
-static void _mqtt_client_network_init(Qcloud_IoT_Client *client, const MQTTInitParams *params)
+static void _mqtt_client_network_init(QcloudIotClient *client, const MQTTInitParams *params)
 {
     if (params->host) {
         strncpy(client->host_addr, params->host, HOST_STR_LENGTH);
@@ -102,7 +103,7 @@ static void _mqtt_client_network_init(Qcloud_IoT_Client *client, const MQTTInitP
                      QCLOUD_IOT_MQTT_DIRECT_DOMAIN);
     }
 
-#ifndef AUTH_WITH_NOTLS
+#ifndef AUTH_WITH_NO_TLS
     // device param for TLS connection
 #ifdef AUTH_MODE_CERT
     Log_d("cert file: %s", STRING_PTR_PRINT_SANITY_CHECK(client->device_info->cert_file));
@@ -140,7 +141,7 @@ static void _mqtt_client_network_init(Qcloud_IoT_Client *client, const MQTTInitP
  * @param[in] params mqtt init params, @see MQTTInitParams
  * @return int
  */
-static int _mqtt_client_connect_option_init(Qcloud_IoT_Client *client, const MQTTInitParams *params)
+static int _mqtt_client_connect_option_init(QcloudIotClient *client, const MQTTInitParams *params)
 {
     IOT_FUNC_ENTRY;
 
@@ -168,7 +169,7 @@ static int _mqtt_client_connect_option_init(Qcloud_IoT_Client *client, const MQT
     HAL_Snprintf(client->options.username, MAX_MQTT_CONNECT_USR_NAME_LEN, "%s;%s;%s;%ld", client->options.client_id,
                  QCLOUD_IOT_DEVICE_SDK_APPID, client->conn_id, cur_timesec);
 
-#if defined(AUTH_WITH_NOTLS) && defined(AUTH_MODE_KEY)
+#if defined(AUTH_WITH_NO_TLS) && defined(AUTH_MODE_KEY)
     char sign[41]            = {0};
     client->options.password = (char *)HAL_Malloc(MAX_MQTT_CONNECT_PASSWORD_LEN);
     if (!client->options.password) {
@@ -194,7 +195,7 @@ error:
  *
  * @param[in,out] client pointer to mqtt client
  * @param[in] params mqtt init params, @see MQTTInitParams
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  *
  * @note
  * 1. init device info.
@@ -203,11 +204,11 @@ error:
  * 4. init connect option @see _mqtt_client_connect_option_init
  * 5. init network @see _mqtt_client_network_init
  */
-static int _qcloud_iot_mqtt_client_init(Qcloud_IoT_Client *client, const MQTTInitParams *params)
+static int _qcloud_iot_mqtt_client_init(QcloudIotClient *client, const MQTTInitParams *params)
 {
     IOT_FUNC_ENTRY;
     int rc = 0;
-    memset(client, 0x0, sizeof(Qcloud_IoT_Client));
+    memset(client, 0x0, sizeof(QcloudIotClient));
 
     // set device info
     client->device_info = params->device_info;
@@ -270,7 +271,7 @@ error:
  *
  * @param[in,out] client pointer to mqtt client
  */
-static void _qcloud_iot_mqtt_client_deinit(Qcloud_IoT_Client *client)
+static void _qcloud_iot_mqtt_client_deinit(QcloudIotClient *client)
 {
     HAL_Free(client->options.username);
     HAL_Free(client->options.password);
@@ -306,10 +307,10 @@ void *IOT_MQTT_Construct(const MQTTInitParams *params)
 
     int rc = 0;
 
-    Qcloud_IoT_Client *client = NULL;
+    QcloudIotClient *client = NULL;
 
     // create and init MQTTClient
-    client = (Qcloud_IoT_Client *)HAL_Malloc(sizeof(Qcloud_IoT_Client));
+    client = (QcloudIotClient *)HAL_Malloc(sizeof(QcloudIotClient));
     if (!client) {
         Log_e("malloc MQTTClient failed");
         return NULL;
@@ -339,7 +340,7 @@ exit:
  * @brief Close connection and destroy MQTT client.
  *
  * @param[in,out] client pointer to mqtt client pointer, should using the pointer of IOT_MQTT_Construct return.
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int IOT_MQTT_Destroy(void **client)
 {
@@ -347,7 +348,7 @@ int IOT_MQTT_Destroy(void **client)
 
     int rc, i;
 
-    Qcloud_IoT_Client *mqtt_client = (Qcloud_IoT_Client *)(*client);
+    QcloudIotClient *mqtt_client = (QcloudIotClient *)(*client);
 
     rc = qcloud_iot_mqtt_disconnect(mqtt_client);
     // disconnect network stack by force
@@ -381,12 +382,12 @@ int IOT_MQTT_Destroy(void **client)
  * @param[in,out] client pointer to mqtt client
  * @param[in] timeout_ms timeout value (unit: ms) for this operation
  * @return QCLOUD_RET_SUCCESS when success, QCLOUD_ERR_MQTT_ATTEMPTING_RECONNECT when try reconnecting, others @see
- * IoT_Return_Code
+ * IotReturnCode
  */
 int IOT_MQTT_Yield(void *client, uint32_t timeout_ms)
 {
     POINTER_SANITY_CHECK(client, QCLOUD_ERR_INVAL);
-    Qcloud_IoT_Client *mqtt_client = (Qcloud_IoT_Client *)client;
+    QcloudIotClient *mqtt_client = (QcloudIotClient *)client;
     return qcloud_iot_mqtt_yield(mqtt_client, timeout_ms);
 }
 
@@ -396,7 +397,7 @@ int IOT_MQTT_Yield(void *client, uint32_t timeout_ms)
  * @param[in,out] client pointer to mqtt client
  * @param[in] topic_name topic to publish
  * @param[in] params @see PublishParams
- * @return packet id (>=0) when success, or err code (<0) @see IoT_Return_Code
+ * @return packet id (>=0) when success, or err code (<0) @see IotReturnCode
  */
 int IOT_MQTT_Publish(void *client, const char *topic_name, const PublishParams *params)
 {
@@ -404,7 +405,7 @@ int IOT_MQTT_Publish(void *client, const char *topic_name, const PublishParams *
     POINTER_SANITY_CHECK(params, QCLOUD_ERR_INVAL);
     STRING_PTR_SANITY_CHECK(topic_name, QCLOUD_ERR_INVAL);
 
-    Qcloud_IoT_Client *mqtt_client = (Qcloud_IoT_Client *)client;
+    QcloudIotClient *mqtt_client = (QcloudIotClient *)client;
 
     if (!get_client_conn_state(client)) {
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_NO_CONN);
@@ -428,7 +429,7 @@ int IOT_MQTT_Publish(void *client, const char *topic_name, const PublishParams *
  * @param[in,out] client pointer to mqtt client
  * @param[in] topic_filter topic filter to subscribe
  * @param[in] params @see SubscribeParams
- * @return packet id (>=0) when success, or err code (<0) @see IoT_Return_Code
+ * @return packet id (>=0) when success, or err code (<0) @see IotReturnCode
  */
 int IOT_MQTT_Subscribe(void *client, const char *topic_filter, const SubscribeParams *params)
 {
@@ -436,7 +437,7 @@ int IOT_MQTT_Subscribe(void *client, const char *topic_filter, const SubscribePa
     POINTER_SANITY_CHECK(params, QCLOUD_ERR_INVAL);
     STRING_PTR_SANITY_CHECK(topic_filter, QCLOUD_ERR_INVAL);
 
-    Qcloud_IoT_Client *mqtt_client = (Qcloud_IoT_Client *)client;
+    QcloudIotClient *mqtt_client = (QcloudIotClient *)client;
 
     if (!get_client_conn_state(client)) {
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_NO_CONN);
@@ -459,14 +460,14 @@ int IOT_MQTT_Subscribe(void *client, const char *topic_filter, const SubscribePa
  *
  * @param[in,out] client pointer to mqtt client
  * @param[in] topic_filter topic filter to unsubscribe
- * @return packet id (>=0) when success, or err code (<0) @see IoT_Return_Code
+ * @return packet id (>=0) when success, or err code (<0) @see IotReturnCode
  */
 int IOT_MQTT_Unsubscribe(void *client, const char *topic_filter)
 {
     POINTER_SANITY_CHECK(client, QCLOUD_ERR_INVAL);
     STRING_PTR_SANITY_CHECK(topic_filter, QCLOUD_ERR_INVAL);
 
-    Qcloud_IoT_Client *mqtt_client = (Qcloud_IoT_Client *)client;
+    QcloudIotClient *mqtt_client = (QcloudIotClient *)client;
 
     if (!get_client_conn_state(client)) {
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_NO_CONN);
@@ -492,7 +493,7 @@ bool IOT_MQTT_IsSubReady(void *client, const char *topic_filter)
     POINTER_SANITY_CHECK(client, false);
     STRING_PTR_SANITY_CHECK(topic_filter, false);
 
-    Qcloud_IoT_Client *mqtt_client = (Qcloud_IoT_Client *)client;
+    QcloudIotClient *mqtt_client = (QcloudIotClient *)client;
     return qcloud_iot_mqtt_is_sub_ready(mqtt_client, topic_filter);
 }
 
@@ -506,7 +507,7 @@ bool IOT_MQTT_IsSubReady(void *client, const char *topic_filter)
 bool IOT_MQTT_IsConnected(void *client)
 {
     POINTER_SANITY_CHECK(client, QCLOUD_ERR_INVAL);
-    Qcloud_IoT_Client *mqtt_client = (Qcloud_IoT_Client *)client;
+    QcloudIotClient *mqtt_client = (QcloudIotClient *)client;
     return get_client_conn_state(mqtt_client);
 }
 
@@ -519,6 +520,6 @@ bool IOT_MQTT_IsConnected(void *client)
 DeviceInfo *IOT_MQTT_GetDeviceInfo(void *client)
 {
     POINTER_SANITY_CHECK(client, NULL);
-    Qcloud_IoT_Client *mqtt_client = (Qcloud_IoT_Client *)client;
+    QcloudIotClient *mqtt_client = (QcloudIotClient *)client;
     return mqtt_client->device_info;
 }

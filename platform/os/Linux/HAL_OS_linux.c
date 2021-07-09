@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-31 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode
  * </table>
  */
 
@@ -244,16 +245,16 @@ static void *_HAL_thread_func_wrapper_(void *ptr)
  * @brief platform-dependant thread create function
  *
  * @param[in,out] params params to create thread @see ThreadParams
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int HAL_ThreadCreate(ThreadParams *params)
 {
     if (params == NULL)
         return QCLOUD_ERR_INVAL;
 
-    int ret = pthread_create((pthread_t *)&params->thread_id, NULL, _HAL_thread_func_wrapper_, (void *)params);
-    if (ret) {
-        HAL_Printf("%s: pthread_create failed: %d\n", __FUNCTION__, ret);
+    int rc = pthread_create((pthread_t *)&params->thread_id, NULL, _HAL_thread_func_wrapper_, (void *)params);
+    if (rc) {
+        HAL_Printf("%s: pthread_create failed: %d\n", __FUNCTION__, rc);
         return QCLOUD_ERR_FAILURE;
     }
 

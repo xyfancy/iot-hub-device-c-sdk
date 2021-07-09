@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-31 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-09 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode
  * </table>
  */
 
@@ -89,7 +90,7 @@ static char sg_device_secret[MAX_SIZE_OF_DEVICE_SECRET + 1] = "IOT_PSK";
  * @param[out] dst dst to copy
  * @param[in] src srt to be copied
  * @param[in] max_len max_len to be copy
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 static int device_info_copy(void *dst, void *src, uint8_t max_len)
 {
@@ -105,77 +106,77 @@ static int device_info_copy(void *dst, void *src, uint8_t max_len)
  * @brief Save device info
  *
  * @param[in] dev_info device info to be saved
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int HAL_SetDevInfo(void *dev_info)
 {
     POINTER_SANITY_CHECK(dev_info, QCLOUD_ERR_DEV_INFO);
-    int         ret;
+    int         rc;
     DeviceInfo *device_info = (DeviceInfo *)dev_info;
 
 #ifdef DEBUG_DEV_INFO_USED
-    ret = device_info_copy(sg_product_id, device_info->product_id, MAX_SIZE_OF_PRODUCT_ID);      // set product ID
-    ret |= device_info_copy(sg_device_name, device_info->device_name, MAX_SIZE_OF_DEVICE_NAME);  // set dev name
+    rc = device_info_copy(sg_product_id, device_info->product_id, MAX_SIZE_OF_PRODUCT_ID);      // set product ID
+    rc |= device_info_copy(sg_device_name, device_info->device_name, MAX_SIZE_OF_DEVICE_NAME);  // set dev name
 
 #ifdef AUTH_MODE_CERT
-    ret |= device_info_copy(sg_device_cert_file_name, device_info->dev_cert_file_name,
-                            MAX_SIZE_OF_DEVICE_CERT_FILE_NAME);  // set dev cert file name
-    ret |= device_info_copy(sg_device_privatekey_file_name, device_info->dev_key_file_name,
-                            MAX_SIZE_OF_DEVICE_SECRET_FILE_NAME);  // set dev key file name
+    rc |= device_info_copy(sg_device_cert_file_name, device_info->dev_cert_file_name,
+                           MAX_SIZE_OF_DEVICE_CERT_FILE_NAME);  // set dev cert file name
+    rc |= device_info_copy(sg_device_privatekey_file_name, device_info->dev_key_file_name,
+                           MAX_SIZE_OF_DEVICE_SECRET_FILE_NAME);  // set dev key file name
 #else
-    ret |= device_info_copy(sg_device_secret, device_info->device_secret, MAX_SIZE_OF_DEVICE_SECRET);  // set dev secret
+    rc |= device_info_copy(sg_device_secret, device_info->device_secret, MAX_SIZE_OF_DEVICE_SECRET);  // set dev secret
 #endif
 
 #else
-    ret = iot_save_devinfo_to_json_file(device_info);
+    rc = iot_save_devinfo_to_json_file(device_info);
 #endif
 
-    if (ret) {
+    if (rc) {
         Log_e("Set device info err");
-        ret = QCLOUD_ERR_DEV_INFO;
+        rc = QCLOUD_ERR_DEV_INFO;
     }
-    return ret;
+    return rc;
 }
 
 /**
  * @brief Get device info
  *
  * @param[in] dev_info buffer to save device info
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int HAL_GetDevInfo(void *dev_info)
 {
     POINTER_SANITY_CHECK(dev_info, QCLOUD_ERR_DEV_INFO);
 
-    int         ret;
+    int         rc;
     DeviceInfo *device_info = (DeviceInfo *)dev_info;
     memset((char *)device_info, '\0', sizeof(DeviceInfo));
 
 #ifdef DEBUG_DEV_INFO_USED
-    ret = device_info_copy(device_info->product_id, sg_product_id, MAX_SIZE_OF_PRODUCT_ID);      // get product ID
-    ret |= device_info_copy(device_info->device_name, sg_device_name, MAX_SIZE_OF_DEVICE_NAME);  // get dev name
+    rc = device_info_copy(device_info->product_id, sg_product_id, MAX_SIZE_OF_PRODUCT_ID);      // get product ID
+    rc |= device_info_copy(device_info->device_name, sg_device_name, MAX_SIZE_OF_DEVICE_NAME);  // get dev name
 
 #ifdef DEV_DYN_REG_ENABLED
-    ret |= device_info_copy(devInfo->product_secret, sg_product_secret, MAX_SIZE_OF_PRODUCT_SECRET);  // get product ID
+    rc |= device_info_copy(devInfo->product_secret, sg_product_secret, MAX_SIZE_OF_PRODUCT_SECRET);  // get product ID
 #endif
 
 #ifdef AUTH_MODE_CERT
-    ret |= device_info_copy(device_info->dev_cert_file_name, sg_device_cert_file_name,
-                            MAX_SIZE_OF_DEVICE_CERT_FILE_NAME);  // get dev cert file name
-    ret |= device_info_copy(device_info->dev_key_file_name, sg_device_privatekey_file_name,
-                            MAX_SIZE_OF_DEVICE_SECRET_FILE_NAME);  // get dev key file name
+    rc |= device_info_copy(device_info->dev_cert_file_name, sg_device_cert_file_name,
+                           MAX_SIZE_OF_DEVICE_CERT_FILE_NAME);  // get dev cert file name
+    rc |= device_info_copy(device_info->dev_key_file_name, sg_device_privatekey_file_name,
+                           MAX_SIZE_OF_DEVICE_SECRET_FILE_NAME);  // get dev key file name
 #else
-    ret |= device_info_copy(device_info->device_secret, sg_device_secret, MAX_SIZE_OF_DEVICE_SECRET);  // get dev secret
+    rc |= device_info_copy(device_info->device_secret, sg_device_secret, MAX_SIZE_OF_DEVICE_SECRET);  // get dev secret
 #endif
 
 #else
     // get devinfo from file
-    ret = HAL_GetDevInfoFromFile(sg_device_info_file, device_info);
+    rc = HAL_GetDevInfoFromFile(sg_device_info_file, device_info);
 #endif
 
-    if (ret) {
+    if (rc) {
         Log_e("Get device info err");
-        ret = QCLOUD_ERR_DEV_INFO;
+        rc = QCLOUD_ERR_DEV_INFO;
     }
-    return ret;
+    return rc;
 }

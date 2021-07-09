@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-31 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotSha1Context
  * </table>
  */
 
@@ -45,21 +46,21 @@ typedef struct {
     uint32_t      total[2];   /**< number of bytes processed  */
     uint32_t      state[5];   /**< intermediate digest state  */
     unsigned char buffer[64]; /**< data block being processed */
-} iot_sha1_context;
+} IotSha1Context;
 
 /**
  * @brief Initialize SHA-1 context.
  *
  * @param[in,out] ctx SHA-1 context to be initialized
  */
-void utils_sha1_init(iot_sha1_context *ctx);
+void utils_sha1_init(IotSha1Context *ctx);
 
 /**
  * @brief Clear SHA-1 context.
  *
  * @param[in,out] ctx SHA-1 context to be cleared
  */
-void utils_sha1_free(iot_sha1_context *ctx);
+void utils_sha1_free(IotSha1Context *ctx);
 
 /**
  * @brief Clone (the state of) a SHA-1 context.
@@ -67,14 +68,14 @@ void utils_sha1_free(iot_sha1_context *ctx);
  * @param[out] dst The destination context
  * @param[in] src The context to be cloned
  */
-void utils_sha1_clone(iot_sha1_context *dst, const iot_sha1_context *src);
+void utils_sha1_clone(IotSha1Context *dst, const IotSha1Context *src);
 
 /**
  * @brief SHA-1 context setup
  *
  * @param[in,out] ctx context to be initialized
  */
-void utils_sha1_starts(iot_sha1_context *ctx);
+void utils_sha1_starts(IotSha1Context *ctx);
 
 /**
  * @brief SHA-1 process buffer.
@@ -83,7 +84,7 @@ void utils_sha1_starts(iot_sha1_context *ctx);
  * @param[in] input buffer holding the data
  * @param[in] ilen length of the input data
  */
-void utils_sha1_update(iot_sha1_context *ctx, const unsigned char *input, size_t ilen);
+void utils_sha1_update(IotSha1Context *ctx, const unsigned char *input, size_t ilen);
 
 /**
  * @brief SHA-1 final digest
@@ -91,7 +92,7 @@ void utils_sha1_update(iot_sha1_context *ctx, const unsigned char *input, size_t
  * @param[in,out] ctx SHA-1 context
  * @param[out] output SHA-1 checksum result
  */
-void utils_sha1_finish(iot_sha1_context *ctx, unsigned char output[20]);
+void utils_sha1_finish(IotSha1Context *ctx, unsigned char output[20]);
 
 /**
  * @brief Output = SHA-1( input buffer )

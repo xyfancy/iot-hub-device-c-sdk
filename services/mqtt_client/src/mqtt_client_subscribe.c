@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode and QcloudIotClient
  * </table>
  */
 
@@ -37,9 +38,9 @@
  * @param[in] type mqtt packet type SUBSCRIBE or UNSUBSCRIBE
  * @param[in] handler subtopic handle
  * @param[out] node node to push to list
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-static int _push_sub_info_to_list(Qcloud_IoT_Client *client, int packet_len, uint16_t packet_id, MQTTPacketType type,
+static int _push_sub_info_to_list(QcloudIotClient *client, int packet_len, uint16_t packet_id, MQTTPacketType type,
                                   const SubTopicHandle *handler, void **node)
 {
     IOT_FUNC_ENTRY;
@@ -77,7 +78,7 @@ static int _push_sub_info_to_list(Qcloud_IoT_Client *client, int packet_len, uin
  * @param[in] packet_id packet id
  * @param[out] sub_handle @see SubTopicHandle
  */
-static void _remove_sub_info_from_list(Qcloud_IoT_Client *client, uint16_t packet_id, SubTopicHandle *sub_handle)
+static void _remove_sub_info_from_list(QcloudIotClient *client, uint16_t packet_id, SubTopicHandle *sub_handle)
 {
     void *node, *iter = NULL;
     void *list = client->list_sub_wait_ack;
@@ -119,7 +120,7 @@ static void _remove_sub_info_from_list(Qcloud_IoT_Client *client, uint16_t packe
  * @return true topic exist
  * @return false topic no exist
  */
-static bool _remove_sub_handle_from_array(Qcloud_IoT_Client *client, const char *topic_filter)
+static bool _remove_sub_handle_from_array(QcloudIotClient *client, const char *topic_filter)
 {
     int  i;
     bool topic_exists = false;
@@ -153,7 +154,7 @@ static bool _remove_sub_handle_from_array(Qcloud_IoT_Client *client, const char 
  * @return true topic exist
  * @return false topic no exist
  */
-static int _add_sub_handle_to_array(Qcloud_IoT_Client *client, const SubTopicHandle *sub_handle)
+static int _add_sub_handle_to_array(QcloudIotClient *client, const SubTopicHandle *sub_handle)
 {
     IOT_FUNC_ENTRY;
     int i, i_free = -1;
@@ -190,9 +191,9 @@ static int _add_sub_handle_to_array(Qcloud_IoT_Client *client, const SubTopicHan
  * @param[in,out] client pointer to mqtt client
  * @param[in] topic_filter topic to subscribe
  * @param[in] params subscribe params
- * @return >=0 for packet id, < 0 for failed @see IoT_Return_Code
+ * @return >=0 for packet id, < 0 for failed @see IotReturnCode
  */
-int qcloud_iot_mqtt_subscribe(Qcloud_IoT_Client *client, const char *topic_filter, const SubscribeParams *params)
+int qcloud_iot_mqtt_subscribe(QcloudIotClient *client, const char *topic_filter, const SubscribeParams *params)
 {
     IOT_FUNC_ENTRY;
     int            rc, packet_len, qos = params->qos;
@@ -247,9 +248,9 @@ exit:
  * @brief Deserialize suback packet and return sub result.
  *
  * @param[in,out] client pointer to mqtt client
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int qcloud_iot_mqtt_handle_suback(Qcloud_IoT_Client *client)
+int qcloud_iot_mqtt_handle_suback(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
     int            rc, count = 0;
@@ -304,9 +305,9 @@ int qcloud_iot_mqtt_handle_suback(Qcloud_IoT_Client *client)
  *
  * @param[in,out] client pointer to mqtt client
  * @param[in] topic_filter topic to unsubscribe
- * @return >=0 packet id, < 0 for failed @see IoT_Return_Code
+ * @return >=0 packet id, < 0 for failed @see IotReturnCode
  */
-int qcloud_iot_mqtt_unsubscribe(Qcloud_IoT_Client *client, const char *topic_filter)
+int qcloud_iot_mqtt_unsubscribe(QcloudIotClient *client, const char *topic_filter)
 {
     IOT_FUNC_ENTRY;
     int      rc, packet_len;
@@ -370,9 +371,9 @@ exit:
  * @brief Deserialize unsuback packet and remove from list.
  *
  * @param[in,out] client pointer to mqtt client
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int qcloud_iot_mqtt_handle_unsuback(Qcloud_IoT_Client *client)
+int qcloud_iot_mqtt_handle_unsuback(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
     int            rc;
@@ -404,7 +405,7 @@ int qcloud_iot_mqtt_handle_unsuback(Qcloud_IoT_Client *client)
  *
  * @param[in,out] client pointer to mqtt client
  */
-void qcloud_iot_mqtt_check_sub_timeout(Qcloud_IoT_Client *client)
+void qcloud_iot_mqtt_check_sub_timeout(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
     void *node, *iter = NULL;
@@ -463,9 +464,9 @@ void qcloud_iot_mqtt_check_sub_timeout(Qcloud_IoT_Client *client)
  * @brief Resubscribe topic when reconnect.
  *
  * @param[in,out] client pointer to mqtt client
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int qcloud_iot_mqtt_resubscribe(Qcloud_IoT_Client *client)
+int qcloud_iot_mqtt_resubscribe(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
     int   rc, itr = 0;
@@ -495,7 +496,7 @@ int qcloud_iot_mqtt_resubscribe(Qcloud_IoT_Client *client)
  * @return true for ready
  * @return false for not ready
  */
-bool qcloud_iot_mqtt_is_sub_ready(Qcloud_IoT_Client *client, const char *topic_filter)
+bool qcloud_iot_mqtt_is_sub_ready(QcloudIotClient *client, const char *topic_filter)
 {
     IOT_FUNC_ENTRY;
     int i = 0;

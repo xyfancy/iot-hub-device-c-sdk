@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-31 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotSha1Context
  * </table>
  */
 
@@ -72,11 +73,11 @@ int utils_hmac_sha1(const char *msg, int msg_len, const uint8_t *key, int key_le
         return -1;
     }
 
-    iot_sha1_context context;
-    unsigned char    k_ipad[KEY_IO_PAD_SIZE]; /* inner padding - key XORd with ipad  */
-    unsigned char    k_opad[KEY_IO_PAD_SIZE]; /* outer padding - key XORd with opad */
-    unsigned char    out[SHA1_DIGEST_SIZE];
-    int              i;
+    IotSha1Context context;
+    unsigned char  k_ipad[KEY_IO_PAD_SIZE]; /* inner padding - key XORd with ipad  */
+    unsigned char  k_opad[KEY_IO_PAD_SIZE]; /* outer padding - key XORd with opad */
+    unsigned char  out[SHA1_DIGEST_SIZE];
+    int            i;
 
     /* start out by storing key in pads */
     memset(k_ipad, 0, sizeof(k_ipad));

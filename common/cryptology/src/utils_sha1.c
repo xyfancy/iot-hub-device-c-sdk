@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-31 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotSha1Context
  * </table>
  */
 
@@ -73,9 +74,9 @@ static void utils_sha1_zeroize(void *v, size_t n)
  *
  * @param[in,out] ctx SHA-1 context to be initialized
  */
-void utils_sha1_init(iot_sha1_context *ctx)
+void utils_sha1_init(IotSha1Context *ctx)
 {
-    memset(ctx, 0, sizeof(iot_sha1_context));
+    memset(ctx, 0, sizeof(IotSha1Context));
 }
 
 /**
@@ -83,13 +84,13 @@ void utils_sha1_init(iot_sha1_context *ctx)
  *
  * @param[in,out] ctx SHA-1 context to be cleared
  */
-void utils_sha1_free(iot_sha1_context *ctx)
+void utils_sha1_free(IotSha1Context *ctx)
 {
     if (!ctx) {
         return;
     }
 
-    utils_sha1_zeroize(ctx, sizeof(iot_sha1_context));
+    utils_sha1_zeroize(ctx, sizeof(IotSha1Context));
 }
 
 /**
@@ -98,7 +99,7 @@ void utils_sha1_free(iot_sha1_context *ctx)
  * @param[out] dst The destination context
  * @param[in] src The context to be cloned
  */
-void utils_sha1_clone(iot_sha1_context *dst, const iot_sha1_context *src)
+void utils_sha1_clone(IotSha1Context *dst, const IotSha1Context *src)
 {
     *dst = *src;
 }
@@ -108,7 +109,7 @@ void utils_sha1_clone(iot_sha1_context *dst, const iot_sha1_context *src)
  *
  * @param[in,out] ctx context to be initialized
  */
-void utils_sha1_starts(iot_sha1_context *ctx)
+void utils_sha1_starts(IotSha1Context *ctx)
 {
     ctx->total[0] = 0;
     ctx->total[1] = 0;
@@ -126,7 +127,7 @@ void utils_sha1_starts(iot_sha1_context *ctx)
  * @param[in,out] ctx pointer to ctx
  * @param[in] data data to be calculated
  */
-void utils_sha1_process(iot_sha1_context *ctx, const unsigned char data[64])
+void utils_sha1_process(IotSha1Context *ctx, const unsigned char data[64])
 {
     uint32_t temp, W[16], A, B, C, D, E;
 
@@ -286,7 +287,7 @@ void utils_sha1_process(iot_sha1_context *ctx, const unsigned char data[64])
  * @param[in] input buffer holding the data
  * @param[in] ilen length of the input data
  */
-void utils_sha1_update(iot_sha1_context *ctx, const unsigned char *input, size_t ilen)
+void utils_sha1_update(IotSha1Context *ctx, const unsigned char *input, size_t ilen)
 {
     size_t   fill;
     uint32_t left;
@@ -334,7 +335,7 @@ static const unsigned char iot_sha1_padding[64] = {0x80, 0, 0, 0, 0, 0, 0, 0, 0,
  * @param[in,out] ctx SHA-1 context
  * @param[out] output SHA-1 checksum result
  */
-void utils_sha1_finish(iot_sha1_context *ctx, unsigned char output[20])
+void utils_sha1_finish(IotSha1Context *ctx, unsigned char output[20])
 {
     uint32_t      last, padn;
     uint32_t      high, low;
@@ -368,7 +369,7 @@ void utils_sha1_finish(iot_sha1_context *ctx, unsigned char output[20])
  */
 void utils_sha1(const unsigned char *input, size_t ilen, unsigned char output[20])
 {
-    iot_sha1_context ctx;
+    IotSha1Context ctx;
 
     utils_sha1_init(&ctx);
     utils_sha1_starts(&ctx);

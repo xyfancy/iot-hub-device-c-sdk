@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-07-07 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotSha1Context
  * </table>
  */
 
@@ -106,11 +107,11 @@ TEST(CryptologyTest, sha1) {
       },
   };
 
-  int i, j, buflen, ret = 0;
+  int i, j, buflen, rc = 0;
   uint8_t buf[1024];
   uint8_t sha1sum[20];
 
-  iot_sha1_context ctx;
+  IotSha1Context ctx;
 
   utils_sha1_init(&ctx);
 

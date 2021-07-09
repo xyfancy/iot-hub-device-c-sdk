@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-31 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode and QcloudIotClient
  * </table>
  */
 
@@ -164,7 +165,7 @@ typedef struct {
     uint16_t     repeat_packet_id_buf[MQTT_MAX_REPEAT_BUF_LEN]; /**< repeat packet id buffer */
     unsigned int current_packet_id_cnt;                         /**< index of packet id buffer */
 #endif
-} Qcloud_IoT_Client;
+} QcloudIotClient;
 
 /**
  * @brief topic publish info
@@ -200,7 +201,7 @@ typedef struct {
  * @param[in,out] client pointer to mqtt client
  * @return uint16_t
  */
-uint16_t get_next_packet_id(Qcloud_IoT_Client *client);
+uint16_t get_next_packet_id(QcloudIotClient *client);
 
 /**
  * @brief Get the next conn id object.
@@ -215,7 +216,7 @@ void get_next_conn_id(char *conn_id);
  * @param[in,out] client pointer to mqtt client
  * @param[in] connected connect status, @see ConnStatus
  */
-void set_client_conn_state(Qcloud_IoT_Client *client, uint8_t connected);
+void set_client_conn_state(QcloudIotClient *client, uint8_t connected);
 
 /**
  * @brief Get the client conn state object.
@@ -223,16 +224,16 @@ void set_client_conn_state(Qcloud_IoT_Client *client, uint8_t connected);
  * @param[in,out] client
  * @return @see ConnStatus
  */
-uint8_t get_client_conn_state(Qcloud_IoT_Client *client);
+uint8_t get_client_conn_state(QcloudIotClient *client);
 
 /**
  * @brief Send mqtt packet, timeout = command_timeout_ms.
  *
  * @param[in,out] client pointer to mqtt client
  * @param[in] length length of data to be sent, data is saved in client write_buf
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int send_mqtt_packet(Qcloud_IoT_Client *client, size_t length);
+int send_mqtt_packet(QcloudIotClient *client, size_t length);
 
 /**************************************************************************************
  * connect
@@ -242,34 +243,34 @@ int send_mqtt_packet(Qcloud_IoT_Client *client, size_t length);
  * @brief Connect MQTT server.
  *
  * @param[in,out] client pointer to mqtt client
- * @return  @see IoT_Return_Code
+ * @return  @see IotReturnCode
  */
-int qcloud_iot_mqtt_connect(Qcloud_IoT_Client *client);
+int qcloud_iot_mqtt_connect(QcloudIotClient *client);
 
 /**
  * @brief Reconnect MQTT server.
  *
  * @param[in,out] client pointer to mqtt client
- * @return  @see IoT_Return_Code
+ * @return  @see IotReturnCode
  */
-int qcloud_iot_mqtt_attempt_reconnect(Qcloud_IoT_Client *client);
+int qcloud_iot_mqtt_attempt_reconnect(QcloudIotClient *client);
 
 /**
  * @brief Disconnect MQTT server.
  *
  * @param[in,out] client pointer to mqtt client
- * @return  @see IoT_Return_Code
+ * @return  @see IotReturnCode
  */
-int qcloud_iot_mqtt_disconnect(Qcloud_IoT_Client *client);
+int qcloud_iot_mqtt_disconnect(QcloudIotClient *client);
 
 /**
  * @brief Serialize and send pingreq packet.
  *
  * @param[in,out] client pointer to mqtt client
  * @param[in] try_times if failed, retry times
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int qcloud_iot_mqtt_pingreq(Qcloud_IoT_Client *client, int try_times);
+int qcloud_iot_mqtt_pingreq(QcloudIotClient *client, int try_times);
 
 /**************************************************************************************
  * publish
@@ -281,18 +282,18 @@ int qcloud_iot_mqtt_pingreq(Qcloud_IoT_Client *client, int try_times);
  * @param[in,out] client pointer to mqtt_client
  * @param[in] topic_name topic to publish
  * @param[in] params publish params
- * @return >=0 for packet id, < 0 for failed @see IoT_Return_Code
+ * @return >=0 for packet id, < 0 for failed @see IotReturnCode
  */
-int qcloud_iot_mqtt_publish(Qcloud_IoT_Client *client, const char *topic_name, const PublishParams *params);
+int qcloud_iot_mqtt_publish(QcloudIotClient *client, const char *topic_name, const PublishParams *params);
 
 /**
  * @brief Deserialize publish packet and deliver_message.
  *
  * @param[in,out] client pointer to mqtt_client
  * @param[in] params publish params
- * @return >=0 for packet id, < 0 for failed @see IoT_Return_Code
+ * @return >=0 for packet id, < 0 for failed @see IotReturnCode
  */
-int qcloud_iot_mqtt_handle_publish(Qcloud_IoT_Client *client);
+int qcloud_iot_mqtt_handle_publish(QcloudIotClient *client);
 
 /**
  * @brief Deserialize puback packet.
@@ -300,14 +301,14 @@ int qcloud_iot_mqtt_handle_publish(Qcloud_IoT_Client *client);
  * @param[in,out] client pointer to mqtt_client
  * @return 0 for success.
  */
-int qcloud_iot_mqtt_handle_puback(Qcloud_IoT_Client *client);
+int qcloud_iot_mqtt_handle_puback(QcloudIotClient *client);
 
 /**
  * @brief Process puback waiting timout.
  *
  * @param[in,out] client pointer to mqtt_client
  */
-void qcloud_iot_mqtt_check_pub_timeout(Qcloud_IoT_Client *client);
+void qcloud_iot_mqtt_check_pub_timeout(QcloudIotClient *client);
 
 /**************************************************************************************
  * subscribe
@@ -319,49 +320,49 @@ void qcloud_iot_mqtt_check_pub_timeout(Qcloud_IoT_Client *client);
  * @param[in,out] client pointer to mqtt client
  * @param[in] topic_filter topic to subscribe
  * @param[in] params subscribe params
- * @return >=0 for packet id, < 0 for failed @see IoT_Return_Code
+ * @return >=0 for packet id, < 0 for failed @see IotReturnCode
  */
-int qcloud_iot_mqtt_subscribe(Qcloud_IoT_Client *client, const char *topic_filter, const SubscribeParams *params);
+int qcloud_iot_mqtt_subscribe(QcloudIotClient *client, const char *topic_filter, const SubscribeParams *params);
 
 /**
  * @brief Deserialize suback packet and return sub result.
  *
  * @param[in,out] client pointer to mqtt client
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int qcloud_iot_mqtt_handle_suback(Qcloud_IoT_Client *client);
+int qcloud_iot_mqtt_handle_suback(QcloudIotClient *client);
 
 /**
  * @brief Serialize and send unsubscribe packet.
  *
  * @param[in,out] client pointer to mqtt client
  * @param[in] topic_filter topic to unsubscribe
- * @return >=0 packet id, < 0 for failed @see IoT_Return_Code
+ * @return >=0 packet id, < 0 for failed @see IotReturnCode
  */
-int qcloud_iot_mqtt_unsubscribe(Qcloud_IoT_Client *client, const char *topic_filter);
+int qcloud_iot_mqtt_unsubscribe(QcloudIotClient *client, const char *topic_filter);
 
 /**
  * @brief Deserialize unsuback packet and remove from list.
  *
  * @param[in,out] client pointer to mqtt client
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int qcloud_iot_mqtt_handle_unsuback(Qcloud_IoT_Client *client);
+int qcloud_iot_mqtt_handle_unsuback(QcloudIotClient *client);
 
 /**
  * @brief Process suback waiting timeout.
  *
  * @param[in,out] client pointer to mqtt client
  */
-void qcloud_iot_mqtt_check_sub_timeout(Qcloud_IoT_Client *client);
+void qcloud_iot_mqtt_check_sub_timeout(QcloudIotClient *client);
 
 /**
  * @brief Resubscribe topic when reconnect.
  *
  * @param[in,out] client pointer to mqtt client
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int qcloud_iot_mqtt_resubscribe(Qcloud_IoT_Client *client);
+int qcloud_iot_mqtt_resubscribe(QcloudIotClient *client);
 
 /**
  * @brief Return if topic is sub ready.
@@ -371,7 +372,7 @@ int qcloud_iot_mqtt_resubscribe(Qcloud_IoT_Client *client);
  * @return true for ready
  * @return false for not ready
  */
-bool qcloud_iot_mqtt_is_sub_ready(Qcloud_IoT_Client *client, const char *topic_filter);
+bool qcloud_iot_mqtt_is_sub_ready(QcloudIotClient *client, const char *topic_filter);
 
 /**************************************************************************************
  * yield
@@ -384,18 +385,18 @@ bool qcloud_iot_mqtt_is_sub_ready(Qcloud_IoT_Client *client, const char *topic_f
  * @param[in] timeout_ms timeout value (unit: ms) for this operation
  *
  * @return QCLOUD_RET_SUCCESS when success, QCLOUD_ERR_MQTT_ATTEMPTING_RECONNECT when try reconnecting, others @see
- * IoT_Return_Code
+ * IotReturnCode
  */
-int qcloud_iot_mqtt_yield(Qcloud_IoT_Client *client, uint32_t timeout_ms);
+int qcloud_iot_mqtt_yield(QcloudIotClient *client, uint32_t timeout_ms);
 
 /**
  * @brief Wait read specific mqtt packet, such as connack.
  *
  * @param[in,out] client pointer to mqtt client
  * @param[in] packet_type packet type except to read
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int qcloud_iot_mqtt_wait_for_read(Qcloud_IoT_Client *client, uint8_t packet_type);
+int qcloud_iot_mqtt_wait_for_read(QcloudIotClient *client, uint8_t packet_type);
 
 #ifdef __cplusplus
 }

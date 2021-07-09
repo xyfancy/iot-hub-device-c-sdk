@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode and QcloudIotClient
  * </table>
  */
 
@@ -35,9 +36,9 @@
  * @param[in] packet_len packet len of publish packet
  * @param[in] packet_id packet id
  * @param[out] node list node
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-static int _push_pub_info_to_list(Qcloud_IoT_Client *client, int packet_len, uint16_t packet_id, void **node)
+static int _push_pub_info_to_list(QcloudIotClient *client, int packet_len, uint16_t packet_id, void **node)
 {
     IOT_FUNC_ENTRY;
     void *            list       = client->list_pub_wait_ack;
@@ -72,7 +73,7 @@ static int _push_pub_info_to_list(Qcloud_IoT_Client *client, int packet_len, uin
  * @param[in,out] client pointer to mqtt_client
  * @param[in] packet_id packet id
  */
-static void _remove_pub_info_from_list(Qcloud_IoT_Client *client, uint16_t packet_id)
+static void _remove_pub_info_from_list(QcloudIotClient *client, uint16_t packet_id)
 {
     void *node, *iter = NULL;
     void *list = client->list_pub_wait_ack;
@@ -145,7 +146,7 @@ static uint8_t _is_topic_matched(char *topic_filter, const char *topic_name, uin
  * @param[in,out] client pointer to mqtt client
  * @param[in] message message to deliver, @see MQTTMessage
  */
-static void _deliver_message(Qcloud_IoT_Client *client, MQTTMessage *message)
+static void _deliver_message(QcloudIotClient *client, MQTTMessage *message)
 {
     int i;
 
@@ -186,7 +187,7 @@ static void _deliver_message(Qcloud_IoT_Client *client, MQTTMessage *message)
  * @param[in] packet_id packet_id
  * @return < 0 for failed.
  */
-static int _get_packet_id_repeat_buf(Qcloud_IoT_Client *client, uint16_t packet_id)
+static int _get_packet_id_repeat_buf(QcloudIotClient *client, uint16_t packet_id)
 {
     int i;
     for (i = 0; i < MQTT_MAX_REPEAT_BUF_LEN; ++i) {
@@ -203,7 +204,7 @@ static int _get_packet_id_repeat_buf(Qcloud_IoT_Client *client, uint16_t packet_
  * @param[in,out] client pointer to mqtt client
  * @param[in] packet_id packet_id
  */
-static void _add_packet_id_to_repeat_buf(Qcloud_IoT_Client *client, uint16_t packet_id)
+static void _add_packet_id_to_repeat_buf(QcloudIotClient *client, uint16_t packet_id)
 {
     if (_get_packet_id_repeat_buf(client, packet_id) >= 0) {
         return;
@@ -220,9 +221,9 @@ static void _add_packet_id_to_repeat_buf(Qcloud_IoT_Client *client, uint16_t pac
  * @param[in,out] client pointer to mqtt_client
  * @param[in] topic_name topic to publish
  * @param[in] params publish params
- * @return >=0 for packet id, < 0 for failed @see IoT_Return_Code
+ * @return >=0 for packet id, < 0 for failed @see IotReturnCode
  */
-int qcloud_iot_mqtt_publish(Qcloud_IoT_Client *client, const char *topic_name, const PublishParams *params)
+int qcloud_iot_mqtt_publish(QcloudIotClient *client, const char *topic_name, const PublishParams *params)
 {
     IOT_FUNC_ENTRY;
     int              rc, packet_len;
@@ -277,9 +278,9 @@ int qcloud_iot_mqtt_publish(Qcloud_IoT_Client *client, const char *topic_name, c
  *
  * @param[in,out] client pointer to mqtt_client
  * @param[in] params publish params
- * @return >=0 for packet id, < 0 for failed @see IoT_Return_Code
+ * @return >=0 for packet id, < 0 for failed @see IotReturnCode
  */
-int qcloud_iot_mqtt_handle_publish(Qcloud_IoT_Client *client)
+int qcloud_iot_mqtt_handle_publish(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
     int              rc, packet_len = 0;
@@ -332,7 +333,7 @@ int qcloud_iot_mqtt_handle_publish(Qcloud_IoT_Client *client)
  * @param[in,out] client pointer to mqtt_client
  * @return 0 for success.
  */
-int qcloud_iot_mqtt_handle_puback(Qcloud_IoT_Client *client)
+int qcloud_iot_mqtt_handle_puback(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
 
@@ -362,7 +363,7 @@ int qcloud_iot_mqtt_handle_puback(Qcloud_IoT_Client *client)
  *
  * @param[in,out] client pointer to mqtt_client
  */
-void qcloud_iot_mqtt_check_pub_timeout(Qcloud_IoT_Client *client)
+void qcloud_iot_mqtt_check_pub_timeout(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
     void *node, *iter = NULL;

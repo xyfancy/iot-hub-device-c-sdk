@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode and QcloudIotClient
  * </table>
  */
 
@@ -124,7 +125,7 @@ typedef enum {
     QCLOUD_ERR_SSL_READ_TIMEOUT                 = -707, /**< TLS/SSL read timeout */
     QCLOUD_ERR_SSL_READ                         = -708, /**< TLS/SSL read error */
     QCLOUD_ERR_SSL_NOTHING_TO_READ              = -709, /**< TLS/SSL nothing to read */
-} IoT_Return_Code;
+} IotReturnCode;
 
 #ifdef __cplusplus
 }

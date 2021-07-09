@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode and QcloudIotClient
  * </table>
  */
 
@@ -41,9 +42,9 @@
  * @param[in] timeout_ms timeout to read
  * @param[out] packet_type packet type to get
  * @param[in,out] pptr pointer to buf pointer
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-static int _read_packet_header(Qcloud_IoT_Client *client, uint32_t timeout_ms, uint8_t *packet_type, uint8_t **pptr)
+static int _read_packet_header(QcloudIotClient *client, uint32_t timeout_ms, uint8_t *packet_type, uint8_t **pptr)
 {
     int    rc       = 0;
     size_t read_len = 0;
@@ -71,7 +72,7 @@ static int _read_packet_header(Qcloud_IoT_Client *client, uint32_t timeout_ms, u
  * @param[in,out] pptr pointer to buf pointer
  * @return int
  */
-static int _read_packet_remaining_len(Qcloud_IoT_Client *client, uint32_t timeout_ms, uint32_t *plen, uint8_t **pptr)
+static int _read_packet_remaining_len(QcloudIotClient *client, uint32_t timeout_ms, uint32_t *plen, uint8_t **pptr)
 {
     IOT_FUNC_ENTRY;
 
@@ -118,7 +119,7 @@ static int _read_packet_remaining_len(Qcloud_IoT_Client *client, uint32_t timeou
  * @param[in] timeout_ms timeout to read
  * @param[in] rem_len remaining length to read
  */
-static void _discard_packet_for_short_buf(Qcloud_IoT_Client *client, uint32_t timeout_ms, uint32_t rem_len)
+static void _discard_packet_for_short_buf(QcloudIotClient *client, uint32_t timeout_ms, uint32_t rem_len)
 {
     int    rc;
     size_t bytes_to_be_read, total_bytes_read = 0;
@@ -148,9 +149,9 @@ static void _discard_packet_for_short_buf(Qcloud_IoT_Client *client, uint32_t ti
  * @param[in] timeout_ms timeout to read
  * @param[in] rem_len length to read
  * @param[out] buf buffer to save payload
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-static int _read_packet_payload(Qcloud_IoT_Client *client, uint32_t timeout_ms, uint32_t rem_len, uint8_t *buf)
+static int _read_packet_payload(QcloudIotClient *client, uint32_t timeout_ms, uint32_t rem_len, uint8_t *buf)
 {
     int    rc;
     size_t read_len = 0;
@@ -164,7 +165,7 @@ static int _read_packet_payload(Qcloud_IoT_Client *client, uint32_t timeout_ms, 
     }
 
     if (read_len != rem_len) {
-#ifdef AUTH_WITH_NOTLS
+#ifdef AUTH_WITH_NO_TLS
         return QCLOUD_ERR_SSL_READ_TIMEOUT;
 #else
         return QCLOUD_ERR_TCP_READ_TIMEOUT;
@@ -180,14 +181,14 @@ static int _read_packet_payload(Qcloud_IoT_Client *client, uint32_t timeout_ms, 
  * @param[in,out] client pointer to mqtt_client
  * @param[in,out] timer timeout timer
  * @param[out] packet_type MQTT packet type
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  *
  * @note
  * 1. read 1st byte in fixed header and check if valid
  * 2. read the remaining length
  * 3. read payload according to remaining length
  */
-static int _read_mqtt_packet(Qcloud_IoT_Client *client, Timer *timer, uint8_t *packet_type)
+static int _read_mqtt_packet(QcloudIotClient *client, Timer *timer, uint8_t *packet_type)
 {
     IOT_FUNC_ENTRY;
     int      rc      = 0;
@@ -226,7 +227,7 @@ static int _read_mqtt_packet(Qcloud_IoT_Client *client, Timer *timer, uint8_t *p
  *
  * @param[in,out] client pointer to mqtt_client
  */
-static void _handle_pingresp_packet(Qcloud_IoT_Client *client)
+static void _handle_pingresp_packet(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
 
@@ -244,9 +245,9 @@ static void _handle_pingresp_packet(Qcloud_IoT_Client *client)
  * @param[in,out] client pointer to mqtt_client
  * @param[in] timer timer for operation
  * @param[out] packet_type packet type of packet read
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-static int _cycle_for_read(Qcloud_IoT_Client *client, Timer *timer, uint8_t *packet_type)
+static int _cycle_for_read(QcloudIotClient *client, Timer *timer, uint8_t *packet_type)
 {
     IOT_FUNC_ENTRY;
 
@@ -313,7 +314,7 @@ static int _cycle_for_read(Qcloud_IoT_Client *client, Timer *timer, uint8_t *pac
  *
  * @param[in,out] client pointer to mqtt client
  */
-static void _set_reconnect_wait_interval(Qcloud_IoT_Client *client)
+static void _set_reconnect_wait_interval(QcloudIotClient *client)
 {
     client->counter_network_disconnected++;
     if (client->auto_connect_enable) {
@@ -329,7 +330,7 @@ static void _set_reconnect_wait_interval(Qcloud_IoT_Client *client)
  *
  * @param[in,out] client pointer to mqtt client
  */
-static void _handle_disconnect(Qcloud_IoT_Client *client)
+static void _handle_disconnect(QcloudIotClient *client)
 {
     int          rc;
     MQTTEventMsg msg;
@@ -364,9 +365,9 @@ static void _handle_disconnect(Qcloud_IoT_Client *client)
  * @brief Handle reconnect.
  *
  * @param[in,out] client pointer to mqtt client
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-static int _handle_reconnect(Qcloud_IoT_Client *client)
+static int _handle_reconnect(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
 
@@ -415,9 +416,9 @@ static int _handle_reconnect(Qcloud_IoT_Client *client)
  * @brief Handle MQTT keep alive (hearbeat with server).
  *
  * @param[in,out] client pointer to mqtt client
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-static int _mqtt_keep_alive(Qcloud_IoT_Client *client)
+static int _mqtt_keep_alive(QcloudIotClient *client)
 {
 #define MQTT_PING_RETRY_TIMES      2
 #define MQTT_PING_SEND_RETRY_TIMES 3
@@ -467,9 +468,9 @@ static int _mqtt_keep_alive(Qcloud_IoT_Client *client)
  * @param[in] timeout_ms timeout value (unit: ms) for this operation
  *
  * @return QCLOUD_RET_SUCCESS when success, QCLOUD_ERR_MQTT_ATTEMPTING_RECONNECT when try reconnecting, others @see
- * IoT_Return_Code
+ * IotReturnCode
  */
-int qcloud_iot_mqtt_yield(Qcloud_IoT_Client *client, uint32_t timeout_ms)
+int qcloud_iot_mqtt_yield(QcloudIotClient *client, uint32_t timeout_ms)
 {
     IOT_FUNC_ENTRY;
 
@@ -537,9 +538,9 @@ int qcloud_iot_mqtt_yield(Qcloud_IoT_Client *client, uint32_t timeout_ms)
  *
  * @param[in,out] client pointer to mqtt client
  * @param[in] packet_type packet type except to read
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int qcloud_iot_mqtt_wait_for_read(Qcloud_IoT_Client *client, uint8_t packet_type)
+int qcloud_iot_mqtt_wait_for_read(QcloudIotClient *client, uint8_t packet_type)
 {
     IOT_FUNC_ENTRY;
 

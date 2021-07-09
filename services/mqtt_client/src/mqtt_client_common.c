@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode and QcloudIotClient
  * </table>
  */
 
@@ -34,7 +35,7 @@
  * @param[in,out] client pointer to mqtt client
  * @return uint16_t
  */
-uint16_t get_next_packet_id(Qcloud_IoT_Client *client)
+uint16_t get_next_packet_id(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
 
@@ -80,7 +81,7 @@ void get_next_conn_id(char *conn_id)
  * @param[in,out] client pointer to mqtt client
  * @param[in] connected connect status, @see ConnStatus
  */
-void set_client_conn_state(Qcloud_IoT_Client *client, uint8_t connected)
+void set_client_conn_state(QcloudIotClient *client, uint8_t connected)
 {
     HAL_MutexLock(client->lock_generic);
     client->is_connected = connected;
@@ -93,7 +94,7 @@ void set_client_conn_state(Qcloud_IoT_Client *client, uint8_t connected)
  * @param[in,out] client
  * @return @see ConnStatus
  */
-uint8_t get_client_conn_state(Qcloud_IoT_Client *client)
+uint8_t get_client_conn_state(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
     uint8_t is_connected = 0;
@@ -108,9 +109,9 @@ uint8_t get_client_conn_state(Qcloud_IoT_Client *client)
  *
  * @param[in,out] client pointer to mqtt client
  * @param[in] length length of data to be sent, data is saved in client write_buf
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int send_mqtt_packet(Qcloud_IoT_Client *client, size_t length)
+int send_mqtt_packet(QcloudIotClient *client, size_t length)
 {
     IOT_FUNC_ENTRY;
 

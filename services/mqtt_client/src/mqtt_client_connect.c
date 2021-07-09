@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode and QcloudIotClient
  * </table>
  */
 
@@ -32,9 +33,9 @@
  * @brief Serialize and send connect packet.
  *
  * @param[in,out] client pointer to mqtt client
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-static int _mqtt_connect(Qcloud_IoT_Client *client)
+static int _mqtt_connect(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
     uint8_t session_present, connack_rc;
@@ -88,9 +89,9 @@ static int _mqtt_connect(Qcloud_IoT_Client *client)
  * @brief Connect MQTT server.
  *
  * @param[in,out] client pointer to mqtt client
- * @return  @see IoT_Return_Code
+ * @return  @see IotReturnCode
  */
-int qcloud_iot_mqtt_connect(Qcloud_IoT_Client *client)
+int qcloud_iot_mqtt_connect(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
     int rc = 0;
@@ -112,9 +113,9 @@ int qcloud_iot_mqtt_connect(Qcloud_IoT_Client *client)
  * @brief Reconnect MQTT server.
  *
  * @param[in,out] client pointer to mqtt client
- * @return  @see IoT_Return_Code
+ * @return  @see IotReturnCode
  */
-int qcloud_iot_mqtt_attempt_reconnect(Qcloud_IoT_Client *client)
+int qcloud_iot_mqtt_attempt_reconnect(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
     int rc = 0;
@@ -143,9 +144,9 @@ int qcloud_iot_mqtt_attempt_reconnect(Qcloud_IoT_Client *client)
  * @brief Disconnect MQTT server.
  *
  * @param[in,out] client pointer to mqtt client
- * @return  @see IoT_Return_Code
+ * @return  @see IotReturnCode
  */
-int qcloud_iot_mqtt_disconnect(Qcloud_IoT_Client *client)
+int qcloud_iot_mqtt_disconnect(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
     int rc, packet_len = 0;
@@ -180,9 +181,9 @@ int qcloud_iot_mqtt_disconnect(Qcloud_IoT_Client *client)
  *
  * @param[in,out] client pointer to mqtt client
  * @param[in] try_times if failed, retry times
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int qcloud_iot_mqtt_pingreq(Qcloud_IoT_Client *client, int try_times)
+int qcloud_iot_mqtt_pingreq(QcloudIotClient *client, int try_times)
 {
     IOT_FUNC_ENTRY;
     int rc, packet_len, i = 0;
