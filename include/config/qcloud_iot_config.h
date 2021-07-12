@@ -36,7 +36,7 @@ extern "C" {
 
 /* #undef AUTH_MODE_CERT */
 #define AUTH_MODE_KEY
-#define AUTH_WITH_NO_TLS
+/* #undef AUTH_WITH_NO_TLS */
 /* #undef GATEWAY_ENABLED */
 /* #undef COAP_COMM_ENABLED */
 /* #undef OTA_MQTT_CHANNEL */

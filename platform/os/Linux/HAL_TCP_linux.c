@@ -129,7 +129,7 @@ int HAL_TCP_Disconnect(int fd)
  */
 int HAL_TCP_Write(int fd, const uint8_t *buf, uint32_t len, uint32_t timeout_ms, size_t *written_len)
 {
-    int            rc;
+    int            rc = 0;
     uint32_t       len_sent;
     Timer          timer_send;
     fd_set         sets;

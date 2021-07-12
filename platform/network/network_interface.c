@@ -57,14 +57,17 @@ int network_tcp_connect(Network *network)
     network->fd = HAL_TCP_Connect(network->host, network->port);
 
     if (network->fd < 0) {
-        Log_e("fail to connect with TCP server: %s:%d", STRING_PTR_PRINT_SANITY_CHECK(network->host), network->port);
+        Log_e("fail to connect with TCP server: %s:%s", STRING_PTR_PRINT_SANITY_CHECK(network->host),
+              STRING_PTR_PRINT_SANITY_CHECK(network->port));
         return network->fd;
     }
 
     if (!strncmp(network->host, LOG_UPLOAD_SERVER_DOMAIN, HOST_STR_LENGTH)) {
-        UPLOAD_DBG("connected with TCP server: %s:%d", network->host, network->port);
+        UPLOAD_DBG("connected with TCP server: %s:%d", STRING_PTR_PRINT_SANITY_CHECK(network->host),
+                   STRING_PTR_PRINT_SANITY_CHECK(network->port));
     } else {
-        Log_i("connected with TCP server: %s:%d", STRING_PTR_PRINT_SANITY_CHECK(network->host), network->port);
+        Log_i("connected with TCP server: %s:%d", STRING_PTR_PRINT_SANITY_CHECK(network->host),
+              STRING_PTR_PRINT_SANITY_CHECK(network->port));
     }
     return QCLOUD_RET_SUCCESS;
 }

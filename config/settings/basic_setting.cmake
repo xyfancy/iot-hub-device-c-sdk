@@ -13,7 +13,7 @@ set(CONFIG_EXTRACT_SRC ON)
 set(CONFIG_AUTH_MODE "KEY")
 
 # 接入认证是否不使用TLS，证书方式必须选择使用TLS，密钥认证可选择不使用TLS
-set(CONFIG_AUTH_WITH_NOTLS ON)
+set(CONFIG_AUTH_WITH_NOTLS OFF)
 
 # 是否打开代码中获取设备信息功能，OFF时将从device_info.json中读取设备信息
 set(CONFIG_DEBUG_DEV_INFO_USED ON)
@@ -70,7 +70,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/platform)
 # set include
 include_directories(${inc_platform})
 
-# add library libiot_common.a
+# add library libiot_platform.a
 add_library(iot_platform STATIC ${src_platform})
 
 ###################### COMMON MODULE #######################################
@@ -152,7 +152,9 @@ if(${CONFIG_AUTH_MODE} STREQUAL  "KEY" )
 endif()
 
 if(${CONFIG_AUTH_WITH_NOTLS} STREQUAL "OFF")
+	# libmbedtls.a
 	add_subdirectory(${PROJECT_SOURCE_DIR}/3rd/mbedtls)
+	set(libsdk ${libsdk} mbedtls)
 endif()
 
 ###################### UINT TEST ####################################
