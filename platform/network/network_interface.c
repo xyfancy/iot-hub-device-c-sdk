@@ -63,10 +63,10 @@ int network_tcp_connect(Network *network)
     }
 
     if (!strncmp(network->host, LOG_UPLOAD_SERVER_DOMAIN, HOST_STR_LENGTH)) {
-        UPLOAD_DBG("connected with TCP server: %s:%d", STRING_PTR_PRINT_SANITY_CHECK(network->host),
+        UPLOAD_DBG("connected with TCP server: %s:%s", STRING_PTR_PRINT_SANITY_CHECK(network->host),
                    STRING_PTR_PRINT_SANITY_CHECK(network->port));
     } else {
-        Log_i("connected with TCP server: %s:%d", STRING_PTR_PRINT_SANITY_CHECK(network->host),
+        Log_i("connected with TCP server: %s:%s", STRING_PTR_PRINT_SANITY_CHECK(network->host),
               STRING_PTR_PRINT_SANITY_CHECK(network->port));
     }
     return QCLOUD_RET_SUCCESS;

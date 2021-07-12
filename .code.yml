@@ -1,0 +1,5 @@
+source:
+  third_party_source:
+    filepath_regex: [
+      ".*/3rd/mbedtls/mbedtls/.*",
+    ]

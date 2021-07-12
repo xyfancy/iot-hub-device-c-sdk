@@ -7,7 +7,7 @@ set(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 set(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 set(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
 set(CMAKE_C_COMPILER "/usr/bin/gcc")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror -Wall -pthread -fstack-protector-strong -Wl,-z,now -Wl,-z,noexecstack -fPIE -pie -D_FORTIFY_SOURCE=2 -ffunction-sections -fdata-sections") # 编译选项
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror -Wall -pthread -fstack-protector-strong -Wl,-z,now -Wl,-z,noexecstack -fPIE -pie -ffunction-sections -fdata-sections") # 编译选项
 set(LINK_FLAGS    "${LINK_FLAGS} -Wl,--gc-sections") # 编译选项
 
 if(${BUILD_TYPE} STREQUAL  "debug")
@@ -16,7 +16,7 @@ if(${BUILD_TYPE} STREQUAL  "debug")
     include(code_coverage)
     append_coverage_compiler_flags()
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os") # 编译选项  -Wl,-Map,iot.map
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os -D_FORTIFY_SOURCE=2") # 编译选项  -Wl,-Map,iot.map
 endif()
 
 set(PLATFORM "Linux")
