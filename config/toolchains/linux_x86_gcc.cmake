@@ -16,9 +16,9 @@ if(${BUILD_TYPE} STREQUAL  "debug")
     include(code_coverage)
     append_coverage_compiler_flags()
 else()
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os") # 编译选项
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Os") # 编译选项  -Wl,-Map,iot.map
 endif()
 
 set(PLATFORM "Linux")
 
-set(libsdk -Wl,--start-group iot_common iot_services iot_platform pthread -Wl,--end-group)
+set(libsdk -Wl,--start-group iot_common iot_services iot_platform mbedtls pthread -Wl,--end-group)

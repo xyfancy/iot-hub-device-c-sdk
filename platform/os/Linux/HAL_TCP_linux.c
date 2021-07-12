@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-31 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-09 <td>1.1     <td>fancyxu   <td>refactor for support tls, change port to str format
  * </table>
  */
 
@@ -43,96 +44,51 @@
 #include "qcloud_iot_platform.h"
 
 /**
- * @brief Get now time ms.
- *
- * @return timestamp
- */
-static uint64_t _linux_get_time_ms(void)
-{
-    struct timeval tv = {0};
-    uint64_t       time_ms;
-
-    gettimeofday(&tv, NULL);
-
-    time_ms = tv.tv_sec * 1000 + tv.tv_usec / 1000;
-
-    return time_ms;
-}
-
-/**
- * @brief Get time left compared with t_end.
- *
- * @param[in] t_end end time
- * @param[in] t_now now time
- * @return t_end - t_now
- */
-static uint64_t _linux_time_left(uint64_t t_end, uint64_t t_now)
-{
-    return t_end > t_now ? t_end - t_now : 0;
-}
-
-/**
  * @brief TCP connect in linux
  *
  * @param[in] host host to connect
  * @param[out] port port to connect
  * @return socket fd
  */
-uintptr_t HAL_TCP_Connect(const char *host, uint16_t port)
+int HAL_TCP_Connect(const char *host, const char *port)
 {
     // to avoid process crash when writing to a broken socket
     signal(SIGPIPE, SIG_IGN);
 
-    int             ret;
+    int rc;
+    int fd = 0;
+
     struct addrinfo hints, *addr_list, *cur;
-    int             fd = 0;
-
-    char port_str[6];
-    HAL_Snprintf(port_str, 6, "%d", port);
-
-    memset(&hints, 0x00, sizeof(hints));
+    memset(&hints, 0, sizeof(hints));
     hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
 
-    ret = getaddrinfo(host, port_str, &hints, &addr_list);
-    if (ret) {
-        if (ret == EAI_SYSTEM)
-            Log_e("getaddrinfo(%s:%s) error: %s", STRING_PTR_PRINT_SANITY_CHECK(host), port_str, strerror(errno));
-        else
-            Log_e("getaddrinfo(%s:%s) error: %s", STRING_PTR_PRINT_SANITY_CHECK(host), port_str, gai_strerror(ret));
-        return 0;
+    rc = getaddrinfo(host, port, &hints, &addr_list);
+    if (rc) {
+        Log_e("getaddrinfo(%s:%s) error: %s", STRING_PTR_PRINT_SANITY_CHECK(host), STRING_PTR_PRINT_SANITY_CHECK(port),
+              rc == EAI_SYSTEM ? strerror(errno) : gai_strerror(rc));
+        return QCLOUD_ERR_TCP_UNKNOWN_HOST;
     }
 
     for (cur = addr_list; cur != NULL; cur = cur->ai_next) {
         fd = (int)socket(cur->ai_family, cur->ai_socktype, cur->ai_protocol);
         if (fd < 0) {
-            ret = 0;
+            rc = QCLOUD_ERR_TCP_SOCKET_FAILED;
             continue;
         }
 
         if (connect(fd, cur->ai_addr, cur->ai_addrlen) == 0) {
-            ret = fd;
+            rc = fd;
             break;
         }
 
         close(fd);
-        ret = 0;
-    }
-
-    if (0 == ret) {
-        Log_e("fail to connect with TCP server: %s:%s", STRING_PTR_PRINT_SANITY_CHECK(host), port_str);
-    } else {
-        /* reduce log print due to frequent log server connect/disconnect */
-        if (0 == strncmp(host, LOG_UPLOAD_SERVER_DOMAIN, HOST_STR_LENGTH))
-            UPLOAD_DBG("connected with TCP server: %s:%s", host, port_str);
-        else
-            Log_i("connected with TCP server: %s:%s", STRING_PTR_PRINT_SANITY_CHECK(host), port_str);
+        rc = QCLOUD_ERR_TCP_CONNECT;
     }
 
     freeaddrinfo(addr_list);
-
-    return (uintptr_t)ret;
+    return rc;
 }
 
 /**
@@ -141,18 +97,18 @@ uintptr_t HAL_TCP_Connect(const char *host, uint16_t port)
  * @param[in] fd socket fd
  * @return 0 for success
  */
-int HAL_TCP_Disconnect(uintptr_t fd)
+int HAL_TCP_Disconnect(int fd)
 {
     int rc;
 
     /* Shutdown both send and receive operations. */
-    rc = shutdown((int)fd, 2);
+    rc = shutdown(fd, 2);
     if (rc) {
         Log_e("shutdown error: %s", strerror(errno));
         return -1;
     }
 
-    rc = close((int)fd);
+    rc = close(fd);
     if (rc) {
         Log_e("closesocket error: %s", strerror(errno));
         return -1;
@@ -169,79 +125,60 @@ int HAL_TCP_Disconnect(uintptr_t fd)
  * @param[in] len buf len
  * @param[in] timeout_ms timeout
  * @param[out] written_len data written length
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int HAL_TCP_Write(uintptr_t fd, const unsigned char *buf, uint32_t len, uint32_t timeout_ms, size_t *written_len)
+int HAL_TCP_Write(int fd, const uint8_t *buf, uint32_t len, uint32_t timeout_ms, size_t *written_len)
 {
-    int      ret;
-    uint32_t len_sent;
-    uint64_t t_end, t_left;
-    fd_set   sets;
+    int            rc;
+    uint32_t       len_sent;
+    Timer          timer_send;
+    fd_set         sets;
+    struct timeval timeout;
 
-    t_end    = _linux_get_time_ms() + timeout_ms;
+    HAL_Timer_countdown_ms(&timer_send, timeout_ms);
     len_sent = 0;
 
     /* send one time if timeout_ms is value 0 */
-    do {
-        t_left = _linux_time_left(t_end, _linux_get_time_ms());
+    while ((len_sent < len) && !HAL_Timer_expired(&timer_send)) {
+        timeout.tv_sec  = HAL_Timer_remain(&timer_send) / 1000;
+        timeout.tv_usec = HAL_Timer_remain(&timer_send) % 1000 * 1000;
 
-        if (0 != t_left) {
-            struct timeval timeout;
+        FD_ZERO(&sets);
+        FD_SET(fd, &sets);
 
-            FD_ZERO(&sets);
-            FD_SET(fd, &sets);
+        rc = select(fd + 1, NULL, &sets, NULL, &timeout);
+        if (!rc) {
+            rc = QCLOUD_ERR_TCP_WRITE_TIMEOUT;
+            Log_e("select-write timeout %d", (int)fd);
+            break;
+        }
 
-            timeout.tv_sec  = t_left / 1000;
-            timeout.tv_usec = (t_left % 1000) * 1000;
-
-            ret = select(fd + 1, NULL, &sets, NULL, &timeout);
-            if (ret > 0) {
-                if (0 == FD_ISSET(fd, &sets)) {
-                    Log_e("Should NOT arrive");
-                    /* If timeout in next loop, it will not sent any data */
-                    ret = 0;
-                    continue;
-                }
-            } else if (0 == ret) {
-                ret = QCLOUD_ERR_TCP_WRITE_TIMEOUT;
-                Log_e("select-write timeout %d", (int)fd);
-                break;
-            } else {
-                if (EINTR == errno) {
-                    Log_e("EINTR be caught");
-                    continue;
-                }
-
-                ret = QCLOUD_ERR_TCP_WRITE_FAIL;
+        if (rc < 0) {
+            if (EINTR != errno) {
+                rc = QCLOUD_ERR_TCP_WRITE_FAIL;
                 Log_e("select-write fail: %s", strerror(errno));
                 break;
             }
-        } else {
-            ret = QCLOUD_ERR_TCP_WRITE_TIMEOUT;
+            Log_e("EINTR be caught");
+            continue;
         }
 
-        if (ret > 0) {
-            ret = send(fd, buf + len_sent, len - len_sent, 0);
-            if (ret > 0) {
-                len_sent += ret;
-            } else if (0 == ret) {
-                Log_e("No data be sent. Should NOT arrive");
-            } else {
-                if (EINTR == errno) {
-                    Log_e("EINTR be caught");
-                    continue;
-                }
-
-                ret = QCLOUD_ERR_TCP_WRITE_FAIL;
-                Log_e("send fail: %s", strerror(errno));
-                break;
+        rc = send(fd, buf + len_sent, len - len_sent, 0);
+        if (rc < 0) {
+            if (EINTR == errno) {
+                Log_e("EINTR be caught");
+                continue;
             }
+            rc = (EPIPE == errno || ECONNRESET == errno) ? QCLOUD_ERR_TCP_PEER_SHUTDOWN : QCLOUD_ERR_TCP_WRITE_FAIL;
+            Log_e("send fail: %s", strerror(errno));
+            break;
         }
-    } while ((len_sent < len) && (_linux_time_left(t_end, _linux_get_time_ms()) > 0));
+
+        len_sent += rc;
+    }
 
     *written_len = (size_t)len_sent;
-
-    return len_sent > 0 ? QCLOUD_RET_SUCCESS : ret;
+    return len_sent > 0 ? QCLOUD_RET_SUCCESS : rc;
 }
 
 /**
@@ -252,76 +189,60 @@ int HAL_TCP_Write(uintptr_t fd, const unsigned char *buf, uint32_t len, uint32_t
  * @param[in] len buffer len
  * @param[in] timeout_ms timeout
  * @param[out] read_len length of data read
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int HAL_TCP_Read(uintptr_t fd, unsigned char *buf, uint32_t len, uint32_t timeout_ms, size_t *read_len)
+int HAL_TCP_Read(int fd, uint8_t *buf, uint32_t len, uint32_t timeout_ms, size_t *read_len)
 {
-    int            ret, err_code;
+    int            rc;
     uint32_t       len_recv;
-    uint64_t       t_end, t_left;
+    Timer          timer_recv;
     fd_set         sets;
     struct timeval timeout;
 
-    t_end    = _linux_get_time_ms() + timeout_ms;
+    HAL_Timer_countdown_ms(&timer_recv, timeout_ms);
     len_recv = 0;
-    err_code = 0;
 
     do {
-        t_left = _linux_time_left(t_end, _linux_get_time_ms());
-        if (0 == t_left) {
-            err_code = QCLOUD_ERR_TCP_READ_TIMEOUT;
-            break;
-        }
-
         FD_ZERO(&sets);
         FD_SET(fd, &sets);
 
-        timeout.tv_sec  = t_left / 1000;
-        timeout.tv_usec = (t_left % 1000) * 1000;
+        timeout.tv_sec  = HAL_Timer_remain(&timer_recv) / 1000;
+        timeout.tv_usec = HAL_Timer_remain(&timer_recv) % 1000 * 1000;
 
-        ret = select(fd + 1, &sets, NULL, NULL, &timeout);
-        if (ret > 0) {
-            ret = recv(fd, buf + len_recv, len - len_recv, 0);
-            if (ret > 0) {
-                len_recv += ret;
-            } else if (0 == ret) {
-                struct sockaddr_in peer;
-                socklen_t          sLen      = sizeof(peer);
-                int                peer_port = 0;
-                getpeername(fd, (struct sockaddr *)&peer, &sLen);
-                peer_port = ntohs(peer.sin_port);
-
-                /* reduce log print due to frequent log server connect/disconnect */
-                if (peer_port == LOG_UPLOAD_SERVER_PORT)
-                    UPLOAD_DBG("connection is closed by server: %s:%d", inet_ntoa(peer.sin_addr), peer_port);
-                else
-                    Log_e("connection is closed by server: %s:%d", inet_ntoa(peer.sin_addr), peer_port);
-
-                err_code = QCLOUD_ERR_TCP_PEER_SHUTDOWN;
-                break;
-            } else {
-                if (EINTR == errno) {
-                    Log_e("EINTR be caught");
-                    continue;
-                }
-                Log_e("recv error: %s", strerror(errno));
-                err_code = QCLOUD_ERR_TCP_READ_FAIL;
-                break;
-            }
-        } else if (0 == ret) {
-            err_code = QCLOUD_ERR_TCP_READ_TIMEOUT;
-            break;
-        } else {
-            Log_e("select-recv error: %s", strerror(errno));
-            err_code = QCLOUD_ERR_TCP_READ_FAIL;
+        rc = select(fd + 1, &sets, NULL, NULL, &timeout);
+        if (!rc) {
+            rc = QCLOUD_ERR_TCP_READ_TIMEOUT;
             break;
         }
-    } while ((len_recv < len));
+
+        if (rc < 0) {
+            if (EINTR != errno) {
+                rc = QCLOUD_ERR_TCP_READ_FAIL;
+                Log_e("select-recv fail: %s", strerror(errno));
+                break;
+            }
+            Log_e("EINTR be caught");
+            continue;
+        }
+
+        rc = recv(fd, buf + len_recv, len - len_recv, 0);
+        if (rc < 0) {
+            if (EINTR == errno) {
+                Log_e("EINTR be caught");
+                continue;
+            }
+            Log_e("recv error: %s", strerror(errno));
+            rc = (EPIPE == errno || ECONNRESET == errno) ? QCLOUD_ERR_TCP_PEER_SHUTDOWN : QCLOUD_ERR_TCP_READ_FAIL;
+            break;
+        }
+        len_recv += rc;
+    } while (len_recv < len);
 
     *read_len = (size_t)len_recv;
 
-    if (err_code == QCLOUD_ERR_TCP_READ_TIMEOUT && len_recv == 0)
-        err_code = QCLOUD_ERR_TCP_NOTHING_TO_READ;
+    if (rc == QCLOUD_ERR_TCP_READ_TIMEOUT && len_recv == 0) {
+        rc = QCLOUD_ERR_TCP_NOTHING_TO_READ;
+    }
 
-    return (len == len_recv) ? QCLOUD_RET_SUCCESS : err_code;
+    return (len == len_recv) ? QCLOUD_RET_SUCCESS : rc;
 }

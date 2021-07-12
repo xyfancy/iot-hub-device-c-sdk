@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-09 <td>1.1     <td>fancyxu   <td>support tls and change port to str format
  * </table>
  */
 
@@ -38,11 +39,15 @@ extern "C" {
 
 #include "qcloud_iot_hub.h"
 
+#ifndef AUTH_WITH_NO_TLS
+#include "qcloud_iot_tls_client.h"
+#endif
+
 /**
  * @brief Type of network interface.
  *
  */
-typedef enum { NETWORK_TCP = 0, NETWORK_UDP = 1, NETWORK_TLS = 2, NETWORK_DTLS = 3 } NETWORK_TYPE;
+typedef enum { NETWORK_TCP = 0, NETWORK_UDP = 1, NETWORK_TLS = 2, NETWORK_DTLS = 3 } NetworkType;
 
 /**
  * @brief Define structure for network stack.
@@ -69,23 +74,25 @@ struct Network {
 
     int (*is_connected)(Network *);
 
-    uintptr_t handle; /**< for non-AT: 0 = not connected, non-zero = connected for AT: 0 = valid connection,
-                         MAX_UNSIGNED_INT = invalid*/
+    union {
+        int       fd;
+        uintptr_t handle;
+    };
 
-#ifndef AUTH_WITH_NOTLS
+#ifndef AUTH_WITH_NO_TLS
     SSLConnectParams ssl_connect_params;
 #endif
 
-    const char * host; /**< server address */
-    int          port; /**< server port */
-    NETWORK_TYPE type;
+    const char *host; /**< server address */
+    const char *port; /**< server port */
+    NetworkType type;
 };
 
 /**
- * @brief Init network, support tcp, tls(if AUTH_WITH_NOTLS defined).
+ * @brief Init network, support tcp, tls(if AUTH_WITH_NO_TLS defined).
  *
- * @param network pointer to network
- * @return @see IoT_Return_Code
+ * @param[in,out] network pointer to network
+ * @return @see IotReturnCode
  */
 int network_init(Network *network);
 

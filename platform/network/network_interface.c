@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-31 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-09 <td>1.1     <td>fancyxu   <td>support tls
  * </table>
  */
 
@@ -47,18 +48,25 @@ int network_tcp_init(Network *network)
  * @brief TCP connect.
  *
  * @param[in,out] network pointer to network handle
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int network_tcp_connect(Network *network)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
 
-    network->handle = HAL_TCP_Connect(network->host, network->port);
-    if (0 == network->handle) {
-        return -1;
+    network->fd = HAL_TCP_Connect(network->host, network->port);
+
+    if (network->fd < 0) {
+        Log_e("fail to connect with TCP server: %s:%d", STRING_PTR_PRINT_SANITY_CHECK(network->host), network->port);
+        return network->fd;
     }
 
-    return 0;
+    if (!strncmp(network->host, LOG_UPLOAD_SERVER_DOMAIN, HOST_STR_LENGTH)) {
+        UPLOAD_DBG("connected with TCP server: %s:%d", network->host, network->port);
+    } else {
+        Log_i("connected with TCP server: %s:%d", STRING_PTR_PRINT_SANITY_CHECK(network->host), network->port);
+    }
+    return QCLOUD_RET_SUCCESS;
 }
 
 /**
@@ -69,17 +77,13 @@ int network_tcp_connect(Network *network)
  * @param[in] datalen data buffer len
  * @param[in] timeout_ms read timeout
  * @param[out] read_len read data len
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int network_tcp_read(Network *network, unsigned char *data, size_t datalen, uint32_t timeout_ms, size_t *read_len)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
 
-    int rc = 0;
-
-    rc = HAL_TCP_Read(network->handle, data, (uint32_t)datalen, timeout_ms, read_len);
-
-    return rc;
+    return HAL_TCP_Read(network->fd, data, (uint32_t)datalen, timeout_ms, read_len);
 }
 
 /**
@@ -90,17 +94,13 @@ int network_tcp_read(Network *network, unsigned char *data, size_t datalen, uint
  * @param[in] datalen data buffer len
  * @param[in] timeout_ms write timeout
  * @param[out] written_len len of written data
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int network_tcp_write(Network *network, unsigned char *data, size_t datalen, uint32_t timeout_ms, size_t *written_len)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
 
-    int rc = 0;
-
-    rc = HAL_TCP_Write(network->handle, data, datalen, timeout_ms, written_len);
-
-    return rc;
+    return HAL_TCP_Write(network->fd, data, datalen, timeout_ms, written_len);
 }
 
 /**
@@ -112,16 +112,27 @@ void network_tcp_disconnect(Network *network)
 {
     POINTER_SANITY_CHECK_RTN(network);
 
-    if (0 == network->handle) {
+    if (network->fd < 0) {
         return;
     }
 
-    HAL_TCP_Disconnect(network->handle);
-    network->handle = 0;
+    HAL_TCP_Disconnect(network->fd);
+    network->fd = -1;
     return;
 }
 
-#ifndef AUTH_WITH_NOTLS
+/**
+ * @brief Return handle.
+ *
+ * @param[in] network pointer to network
+ * @return handle of network
+ */
+static int _is_network_tcp_connected(Network *network)
+{
+    return network->fd > 0;
+}
+
+#ifndef AUTH_WITH_NO_TLS
 
 /**
  * @brief TLS init, do nothing.
@@ -138,20 +149,13 @@ int network_tls_init(Network *network)
  * @brief TLS connect.
  *
  * @param[in,out] network pointer to network handle
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int network_tls_connect(Network *network)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
-
-    int ret = QCLOUD_ERR_SSL_CONNECT;
-
-    network->handle = (uintptr_t)HAL_TLS_Connect(&(network->ssl_connect_params), network->host, network->port);
-    if (network->handle != 0) {
-        ret = QCLOUD_RET_SUCCESS;
-    }
-
-    return ret;
+    network->handle = qcloud_iot_tls_client_connect(&network->ssl_connect_params, network->host, network->port);
+    return network->handle ? QCLOUD_RET_SUCCESS : QCLOUD_ERR_SSL_CONNECT;
 }
 
 /**
@@ -162,15 +166,12 @@ int network_tls_connect(Network *network)
  * @param[in] datalen data buffer len
  * @param[in] timeout_ms read timeout
  * @param[out] read_len read data len
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int network_tls_read(Network *network, unsigned char *data, size_t datalen, uint32_t timeout_ms, size_t *read_len)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
-
-    int rc = HAL_TLS_Read(network->handle, data, datalen, timeout_ms, read_len);
-
-    return rc;
+    return qcloud_iot_tls_client_read(network->handle, data, datalen, timeout_ms, read_len);
 }
 
 /**
@@ -181,15 +182,12 @@ int network_tls_read(Network *network, unsigned char *data, size_t datalen, uint
  * @param[in] datalen data buffer len
  * @param[in] timeout_ms write timeout
  * @param[out] written_len len of written data
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int network_tls_write(Network *network, unsigned char *data, size_t datalen, uint32_t timeout_ms, size_t *written_len)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
-
-    int rc = HAL_TLS_Write(network->handle, data, datalen, timeout_ms, written_len);
-
-    return rc;
+    return qcloud_iot_tls_client_write(network->handle, data, datalen, timeout_ms, written_len);
 }
 
 /**
@@ -201,11 +199,9 @@ void network_tls_disconnect(Network *network)
 {
     POINTER_SANITY_CHECK_RTN(network);
 
-    HAL_TLS_Disconnect(network->handle);
+    qcloud_iot_tls_client_disconnect(network->handle);
     network->handle = 0;
 }
-
-#endif
 
 /**
  * @brief Return handle.
@@ -213,16 +209,18 @@ void network_tls_disconnect(Network *network)
  * @param[in] network pointer to network
  * @return handle of network
  */
-int is_network_connected(Network *network)
+static int _is_network_tls_connected(Network *network)
 {
     return network->handle;
 }
 
+#endif
+
 /**
- * @brief Init network, support tcp, tls(if AUTH_WITH_NOTLS defined).
+ * @brief Init network, support tcp, tls(if AUTH_WITH_NO_TLS defined).
  *
- * @param network pointer to network
- * @return @see IoT_Return_Code
+ * @param[in,out] network pointer to network
+ * @return @see IotReturnCode
  */
 int network_init(Network *network)
 {
@@ -235,18 +233,18 @@ int network_init(Network *network)
             network->read         = network_tcp_read;
             network->write        = network_tcp_write;
             network->disconnect   = network_tcp_disconnect;
-            network->is_connected = is_network_connected;
-            network->handle       = 0;
+            network->is_connected = _is_network_tcp_connected;
+            network->fd           = -1;
             break;
 
-#ifndef AUTH_WITH_NOTLS
+#ifndef AUTH_WITH_NO_TLS
         case NETWORK_TLS:
             network->init         = network_tls_init;
             network->connect      = network_tls_connect;
             network->read         = network_tls_read;
             network->write        = network_tls_write;
             network->disconnect   = network_tls_disconnect;
-            network->is_connected = is_network_connected;
+            network->is_connected = _is_network_tls_connected;
             network->handle       = 0;
             break;
 #endif

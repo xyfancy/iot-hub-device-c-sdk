@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-06-01 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-12 <td>1.1     <td>fancyxu   <td>rename AUTH_WITH_NOTLS to AUTH_WITH_NO_TLS
  * </table>
  */
 
@@ -35,7 +36,7 @@ extern "C" {
 
 /* #undef AUTH_MODE_CERT */
 #define AUTH_MODE_KEY
-#define AUTH_WITH_NOTLS
+#define AUTH_WITH_NO_TLS
 /* #undef GATEWAY_ENABLED */
 /* #undef COAP_COMM_ENABLED */
 /* #undef OTA_MQTT_CHANNEL */

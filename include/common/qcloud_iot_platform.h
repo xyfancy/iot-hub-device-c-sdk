@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-09 <td>1.1     <td>fancyxu   <td>support tls and change port to str format
  * </table>
  */
 
@@ -160,7 +161,7 @@ typedef struct {
  * @brief platform-dependant thread create function
  *
  * @param[in,out] params params to create thread @see ThreadParams
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int HAL_ThreadCreate(ThreadParams *params);
 
@@ -180,7 +181,7 @@ void HAL_ThreadExit(void);
  * @brief Save device info.
  *
  * @param[in] dev_info device info to be saved
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int HAL_SetDevInfo(void *dev_info);
 
@@ -188,7 +189,7 @@ int HAL_SetDevInfo(void *dev_info);
  * @brief Get device info.
  *
  * @param[in] dev_info buffer to save device info
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
 int HAL_GetDevInfo(void *dev_info);
 
@@ -272,7 +273,7 @@ int HAL_Timer_set_systime_sec(size_t timestamp_sec);
 int HAL_Timer_set_systime_ms(size_t timestamp_ms);
 
 /**************************************************************************************
- * network
+ * network tcp
  **************************************************************************************/
 
 /**
@@ -282,7 +283,7 @@ int HAL_Timer_set_systime_ms(size_t timestamp_ms);
  * @param[out] port port to connect
  * @return socket fd
  */
-uintptr_t HAL_TCP_Connect(const char *host, uint16_t port);
+int HAL_TCP_Connect(const char *host, const char *port);
 
 /**
  * @brief TCP disconnect
@@ -290,7 +291,7 @@ uintptr_t HAL_TCP_Connect(const char *host, uint16_t port);
  * @param[in] fd socket fd
  * @return 0 for success
  */
-int HAL_TCP_Disconnect(uintptr_t fd);
+int HAL_TCP_Disconnect(int fd);
 
 /**
  * @brief TCP write
@@ -300,9 +301,9 @@ int HAL_TCP_Disconnect(uintptr_t fd);
  * @param[in] len buf len
  * @param[in] timeout_ms timeout
  * @param[out] written_len data written length
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int HAL_TCP_Write(uintptr_t fd, const unsigned char *data, uint32_t len, uint32_t timeout_ms, size_t *written_len);
+int HAL_TCP_Write(int fd, const uint8_t *data, uint32_t len, uint32_t timeout_ms, size_t *written_len);
 
 /**
  * @brief TCP read.
@@ -312,9 +313,9 @@ int HAL_TCP_Write(uintptr_t fd, const unsigned char *data, uint32_t len, uint32_
  * @param[in] len buffer len
  * @param[in] timeout_ms timeout
  * @param[out] read_len length of data read
- * @return @see IoT_Return_Code
+ * @return @see IotReturnCode
  */
-int HAL_TCP_Read(uintptr_t fd, unsigned char *data, uint32_t len, uint32_t timeout_ms, size_t *read_len);
+int HAL_TCP_Read(int fd, uint8_t *data, uint32_t len, uint32_t timeout_ms, size_t *read_len);
 
 #if defined(__cplusplus)
 }

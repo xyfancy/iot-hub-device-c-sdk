@@ -23,7 +23,7 @@ set(CONFIG_MULTITHREAD_ENABLED OFF)
 
 option(IOT_DEBUG "Enable IOT_DEBUG" ${CONFIG_IOT_DEBUG})
 option(DEBUG_DEV_INFO_USED "Enable DEBUG_DEV_INFO_USED" ${CONFIG_DEBUG_DEV_INFO_USED})
-option(AUTH_WITH_NOTLS "Enable AUTH_WITH_NOTLS" ${CONFIG_AUTH_WITH_NOTLS})
+option(AUTH_WITH_NO_TLS "Enable AUTH_WITH_NO_TLS" ${CONFIG_AUTH_WITH_NOTLS})
 
 if(${CONFIG_AUTH_MODE} STREQUAL  "KEY")
 	option(AUTH_MODE_KEY "Enable AUTH_MODE_KEY" ON)
@@ -32,7 +32,7 @@ elseif(${CONFIG_AUTH_MODE} STREQUAL  "CERT" AND ${CONFIG_AUTH_WITH_NOTLS} STREQU
 	option(AUTH_MODE_KEY "Enable AUTH_MODE_KEY" OFF)
 	option(AUTH_MODE_CERT "Enable AUTH_MODE_CERT" ON)
 else()
-	message(FATAL_ERROR "INVAILD AUTH_MODE:${FEATURE_AUTH_MODE} WITH AUTH_WITH_NOTLS:${FEATURE_AUTH_WITH_NOTLS}!")
+	message(FATAL_ERROR "INVAILD AUTH_MODE:${FEATURE_AUTH_MODE} WITH AUTH_WITH_NO_TLS:${FEATURE_AUTH_WITH_NOTLS}!")
 endif()
 
 configure_file (
@@ -60,11 +60,6 @@ link_directories(${LIBRARY_OUTPUT_PATH})
 if(${CONFIG_IOT_TEST} STREQUAL "ON")
 	set(src_test CACHE INTERNAL "")
 endif()
-
-###################### 3rd MODULE ####################################
-
-# mbedtls
-#add_subdirectory()
 
 ###################### PLATFORM MODULE #######################################
 set(src_platform CACHE INTERNAL "")
@@ -144,6 +139,21 @@ include_directories(${inc_services})
 
 # add library libiot_services.a
 add_library(iot_services STATIC ${src_services})
+
+###################### 3rd MODULE ####################################
+
+# mbedtls
+if(${CONFIG_AUTH_MODE} STREQUAL  "KEY" )
+	include_directories(
+		${PROJECT_SOURCE_DIR}/3rd/mbedtls/mbedtls/include
+		${PROJECT_SOURCE_DIR}/3rd/mbedtls/port/inc
+	)
+	add_definitions("-DMBEDTLS_CONFIG_FILE=\"qcloud_iot_tls_psk_config.h\"")
+endif()
+
+if(${CONFIG_AUTH_WITH_NOTLS} STREQUAL "OFF")
+	add_subdirectory(${PROJECT_SOURCE_DIR}/3rd/mbedtls)
+endif()
 
 ###################### UINT TEST ####################################
 if(${CONFIG_IOT_TEST} STREQUAL "ON")

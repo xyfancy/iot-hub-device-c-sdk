@@ -23,6 +23,8 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-07-07 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>support tls test
+ * <tr><td>2021-07-12 <td>1.1     <td>fancyxu   <td>fix connect twice in 5s error
  * </table>
  */
 
@@ -54,12 +56,16 @@ class MqttClientTest : public testing::Test {
 
     MQTTInitParams init_params = DEFAULT_MQTT_INIT_PARAMS;
     init_params.device_info = &device_info;
+#ifdef AUTH_WITH_NO_TLS
     init_params.host = "localhost";
+#endif
     init_params.command_timeout = QCLOUD_IOT_MQTT_COMMAND_TIMEOUT;
     init_params.keep_alive_interval_ms = QCLOUD_IOT_MQTT_KEEP_ALIVE_INTERNAL;
     init_params.auto_connect_enable = 1;
     init_params.event_handle.h_fp = NULL;
     init_params.event_handle.context = NULL;
+
+    HAL_SleepMs(5000);  // for iot hub can not connect twice in 5 s
 
     client = IOT_MQTT_Construct(&init_params);
     ASSERT_NE(client, nullptr);

@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-06-01 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-12 <td>1.1     <td>fancyxu   <td>rename AUTH_WITH_NOTLS to AUTH_WITH_NO_TLS
  * </table>
  */
 
@@ -35,7 +36,7 @@ extern "C" {
 
 #cmakedefine AUTH_MODE_CERT
 #cmakedefine AUTH_MODE_KEY
-#cmakedefine AUTH_WITH_NOTLS
+#cmakedefine AUTH_WITH_NO_TLS
 #cmakedefine GATEWAY_ENABLED
 #cmakedefine COAP_COMM_ENABLED
 #cmakedefine OTA_MQTT_CHANNEL
