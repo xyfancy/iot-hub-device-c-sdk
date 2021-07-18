@@ -102,7 +102,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/services/mqtt_client)
 
 ## MQTT ONLY
 # 是否打开广播功能
-#add_subdirectory()
+add_subdirectory(${PROJECT_SOURCE_DIR}/services/broadcast)
 
 # 是否打开RRPC功能
 #add_subdirectory()
