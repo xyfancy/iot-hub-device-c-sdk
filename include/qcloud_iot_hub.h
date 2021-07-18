@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-18 <td>1.1     <td>fancyxu   <td>support broadcast
  * </table>
  */
 
@@ -53,6 +54,7 @@ extern "C" {
 
 // service header file
 #include "qcloud_iot_mqtt_client.h"
+#include "qcloud_iot_broadcast.h"
 
 #ifdef __cplusplus
 }
