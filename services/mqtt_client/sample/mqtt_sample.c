@@ -113,14 +113,14 @@ static void _mqtt_event_handler(void *client, void *handle_context, MQTTEventMsg
  * @param[in,out] initParams @see MQTTInitParams
  * @param[in] device_info @see DeviceInfo
  */
-static void _setup_connect_init_params(MQTTInitParams *initParams, DeviceInfo *device_info)
+static void _setup_connect_init_params(MQTTInitParams *init_params, DeviceInfo *device_info)
 {
-    initParams->device_info            = device_info;
-    initParams->command_timeout        = QCLOUD_IOT_MQTT_COMMAND_TIMEOUT;
-    initParams->keep_alive_interval_ms = QCLOUD_IOT_MQTT_KEEP_ALIVE_INTERNAL;
-    initParams->auto_connect_enable    = 1;
-    initParams->event_handle.h_fp      = _mqtt_event_handler;
-    initParams->event_handle.context   = NULL;
+    init_params->device_info            = device_info;
+    init_params->command_timeout        = QCLOUD_IOT_MQTT_COMMAND_TIMEOUT;
+    init_params->keep_alive_interval_ms = QCLOUD_IOT_MQTT_KEEP_ALIVE_INTERNAL;
+    init_params->auto_connect_enable    = 1;
+    init_params->event_handle.h_fp      = _mqtt_event_handler;
+    init_params->event_handle.context   = NULL;
 }
 
 /**
@@ -133,32 +133,22 @@ static void _setup_connect_init_params(MQTTInitParams *initParams, DeviceInfo *d
  */
 static int _publish_test_msg(void *client, const char *topic_keyword, QoS qos)
 {
-    char        topic_name[128] = {0};
-    DeviceInfo *dev_info        = IOT_MQTT_GetDeviceInfo(client);
+    char topic_name[MAX_SIZE_OF_CLOUD_TOPIC] = {0};
 
-    int size = HAL_Snprintf(
-        topic_name, sizeof(topic_name), "%s/%s/%s", STRING_PTR_PRINT_SANITY_CHECK(dev_info->product_id),
-        STRING_PTR_PRINT_SANITY_CHECK(dev_info->device_name), STRING_PTR_PRINT_SANITY_CHECK(topic_keyword));
-    if (size < 0 || size > sizeof(topic_name) - 1) {
-        Log_e("topic content length not enough! content size:%d  buf size:%d", size, (int)sizeof(topic_name));
-        return QCLOUD_ERR_FAILURE;
-    }
+    DeviceInfo *dev_info = IOT_MQTT_GetDeviceInfo(client);
+
+    HAL_Snprintf(topic_name, sizeof(topic_name), "%s/%s/%s", STRING_PTR_PRINT_SANITY_CHECK(dev_info->product_id),
+                 STRING_PTR_PRINT_SANITY_CHECK(dev_info->device_name), STRING_PTR_PRINT_SANITY_CHECK(topic_keyword));
 
     static int    test_count = 0;
     PublishParams pub_params = DEFAULT_PUB_PARAMS;
     pub_params.qos           = qos;
 
-    char topic_content[128] = {0};
-    size = HAL_Snprintf(topic_content, sizeof(topic_content), "{\"action\": \"publish_test\", \"count\": \"%d\"}",
-                        test_count++);
-    if (size < 0 || size > sizeof(topic_content) - 1) {
-        Log_e("payload content length not enough! content size:%d  buf size:%d", size, (int)sizeof(topic_content));
-        return -3;
-    }
-
-    pub_params.payload     = topic_content;
-    pub_params.payload_len = strlen(topic_content);
-
+    char publish_content[128] = {0};
+    HAL_Snprintf(publish_content, sizeof(publish_content), "{\"action\": \"publish_test\", \"count\": \"%d\"}",
+                 test_count++);
+    pub_params.payload     = publish_content;
+    pub_params.payload_len = strlen(publish_content);
     return IOT_MQTT_Publish(client, topic_name, &pub_params);
 }
 
@@ -169,14 +159,14 @@ static int _publish_test_msg(void *client, const char *topic_keyword, QoS qos)
  * @param[in] message publish message from server
  * @param[in] usr_data user data of SubscribeParams, @see SubscribeParams
  */
-static void _on_message_callback(void *client, MQTTMessage *message, void *user_data)
+static void _on_message_callback(void *client, const MQTTMessage *message, void *user_data)
 {
     if (!message) {
         return;
     }
 
-    Log_i("Receive Message With topicName:%.*s, payload:%.*s", (int)message->topic_len,
-          STRING_PTR_PRINT_SANITY_CHECK(message->topic_name), (int)message->payload_len,
+    Log_i("Receive Message With topicName:%.*s, payload:%.*s", message->topic_len,
+          STRING_PTR_PRINT_SANITY_CHECK(message->topic_name), message->payload_len,
           STRING_PTR_PRINT_SANITY_CHECK((char *)message->payload));
 }
 
@@ -190,44 +180,35 @@ static void _on_message_callback(void *client, MQTTMessage *message, void *user_
  */
 static int _subscribe_topic_wait_result(void *client, char *topic_keyword, QoS qos)
 {
-    char        topic_name[128] = {0};
-    DeviceInfo *dev_info        = IOT_MQTT_GetDeviceInfo(client);
+    char topic_name[MAX_SIZE_OF_CLOUD_TOPIC] = {0};
 
-    int size = HAL_Snprintf(
-        topic_name, sizeof(topic_name), "%s/%s/%s", STRING_PTR_PRINT_SANITY_CHECK(dev_info->product_id),
-        STRING_PTR_PRINT_SANITY_CHECK(dev_info->device_name), STRING_PTR_PRINT_SANITY_CHECK(topic_keyword));
-    if (size < 0 || size > sizeof(topic_name) - 1) {
-        Log_e("topic content length not enough! content size:%d  buf size:%d", size, (int)sizeof(topic_name));
-        return QCLOUD_ERR_FAILURE;
-    }
+    DeviceInfo *dev_info = IOT_MQTT_GetDeviceInfo(client);
+
+    HAL_Snprintf(topic_name, sizeof(topic_name), "%s/%s/%s", STRING_PTR_PRINT_SANITY_CHECK(dev_info->product_id),
+                 STRING_PTR_PRINT_SANITY_CHECK(dev_info->device_name), STRING_PTR_PRINT_SANITY_CHECK(topic_keyword));
 
     SubscribeParams sub_params    = DEFAULT_SUB_PARAMS;
     sub_params.qos                = qos;
     sub_params.on_message_handler = _on_message_callback;
 
-    int rc = IOT_MQTT_Subscribe(client, topic_name, &sub_params);
+    int wait_cnt = 5;
+    int rc       = 0;
+
+    rc = IOT_MQTT_Subscribe(client, topic_name, &sub_params);
     if (rc < 0) {
         Log_e("MQTT subscribe FAILED: %d", rc);
         return rc;
     }
 
-    int wait_cnt = 10;
-    while (!IOT_MQTT_IsSubReady(client, topic_name) && (wait_cnt > 0)) {
-        // wait for subscription result
+    do {
+        /**
+         * @brief wait for subscription result
+         *
+         */
         rc = IOT_MQTT_Yield(client, 1000);
-        if (rc) {
-            Log_e("MQTT error: %d", rc);
-            return rc;
-        }
-        wait_cnt--;
-    }
+    } while (!IOT_MQTT_IsSubReady(client, topic_name) && (wait_cnt-- >= 0));
 
-    if (wait_cnt > 0) {
-        return QCLOUD_RET_SUCCESS;
-    } else {
-        Log_e("wait for subscribe result timeout!");
-        return QCLOUD_ERR_FAILURE;
-    }
+    return IOT_MQTT_IsSubReady(client, topic_name) ? QCLOUD_RET_SUCCESS : QCLOUD_ERR_FAILURE;
 }
 
 /**
@@ -239,16 +220,12 @@ static int _subscribe_topic_wait_result(void *client, char *topic_keyword, QoS q
  */
 static int _unsubscribe_topic(void *client, char *topic_keyword)
 {
-    char        topic_name[128] = {0};
-    DeviceInfo *dev_info        = IOT_MQTT_GetDeviceInfo(client);
+    char topic_name[MAX_SIZE_OF_CLOUD_TOPIC] = {0};
 
-    int size = HAL_Snprintf(
-        topic_name, sizeof(topic_name), "%s/%s/%s", STRING_PTR_PRINT_SANITY_CHECK(dev_info->product_id),
-        STRING_PTR_PRINT_SANITY_CHECK(dev_info->device_name), STRING_PTR_PRINT_SANITY_CHECK(topic_keyword));
-    if (size < 0 || size > sizeof(topic_name) - 1) {
-        Log_e("topic content length not enough! content size:%d  buf size:%d", size, (int)sizeof(topic_name));
-        return QCLOUD_ERR_FAILURE;
-    }
+    DeviceInfo *dev_info = IOT_MQTT_GetDeviceInfo(client);
+
+    HAL_Snprintf(topic_name, sizeof(topic_name), "%s/%s/%s", STRING_PTR_PRINT_SANITY_CHECK(dev_info->product_id),
+                 STRING_PTR_PRINT_SANITY_CHECK(dev_info->device_name), STRING_PTR_PRINT_SANITY_CHECK(topic_keyword));
 
     int rc = IOT_MQTT_Unsubscribe(client, topic_name);
     if (rc < 0) {
@@ -256,9 +233,7 @@ static int _unsubscribe_topic(void *client, char *topic_keyword)
         return rc;
     }
 
-    // wait for unsuback
-    rc = IOT_MQTT_Yield(client, 500);
-    return rc;
+    return IOT_MQTT_Yield(client, 500);  // wait for unsuback
 }
 
 // ----------------------------------------------------------------------------

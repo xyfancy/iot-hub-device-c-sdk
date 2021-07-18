@@ -59,6 +59,7 @@ link_directories(${LIBRARY_OUTPUT_PATH})
 # set test src
 if(${CONFIG_IOT_TEST} STREQUAL "ON")
 	set(src_test CACHE INTERNAL "")
+	set(inc_test CACHE INTERNAL "")
 endif()
 
 ###################### PLATFORM MODULE #######################################
@@ -159,6 +160,7 @@ endif()
 
 ###################### UINT TEST ####################################
 if(${CONFIG_IOT_TEST} STREQUAL "ON")
+	include_directories(${inc_test})
 	find_package(GTest REQUIRED)
 	add_executable(iot_hub_sdk_test ${src_test})
 	target_link_libraries(iot_hub_sdk_test ${GTEST_BOTH_LIBRARIES} ${libsdk})

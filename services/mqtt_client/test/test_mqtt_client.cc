@@ -25,61 +25,16 @@
  * <tr><td>2021-07-07 <td>1.0     <td>fancyxu   <td>first commit
  * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>support tls test
  * <tr><td>2021-07-12 <td>1.1     <td>fancyxu   <td>fix connect twice in 5s error
+ * <tr><td>2021-07-18 <td>1.2     <td>fancyxu   <td>remove MqttClientTest for common use
  * </table>
  */
 
 #include <iostream>
 #include <string>
 
-#include "gtest/gtest.h"
-#include "qcloud_iot_hub.h"
+#include "mqtt_client_test.h"
 
 namespace mqtt_client_unittest {
-/**
- * @brief test fixture of mqtt client
- *
- */
-class MqttClientTest : public testing::Test {
- protected:
-  void SetUp() override {
-    LogHandleFunc func;
-    func.log_malloc = HAL_Malloc;
-    func.log_free = HAL_Free;
-    func.log_get_current_time_str = HAL_Timer_current;
-    func.log_printf = HAL_Printf;
-    func.log_handle = NULL;
-    utils_log_init(func, eLOG_DEBUG, 2048);
-
-    ASSERT_EQ(HAL_GetDevInfo(reinterpret_cast<void *>(&device_info)), 0);
-
-    HAL_Snprintf(topic_name, sizeof(topic_name), "%s/%s/data", device_info.product_id, device_info.device_name);
-
-    MQTTInitParams init_params = DEFAULT_MQTT_INIT_PARAMS;
-    init_params.device_info = &device_info;
-#ifdef AUTH_WITH_NO_TLS
-    init_params.host = "localhost";
-#endif
-    init_params.command_timeout = QCLOUD_IOT_MQTT_COMMAND_TIMEOUT;
-    init_params.keep_alive_interval_ms = QCLOUD_IOT_MQTT_KEEP_ALIVE_INTERNAL;
-    init_params.auto_connect_enable = 1;
-    init_params.event_handle.h_fp = NULL;
-    init_params.event_handle.context = NULL;
-
-    HAL_SleepMs(5000);  // for iot hub can not connect twice in 5 s
-
-    client = IOT_MQTT_Construct(&init_params);
-    ASSERT_NE(client, nullptr);
-  }
-
-  void TearDown() override {
-    IOT_MQTT_Destroy(&client);
-    utils_log_deinit();
-  }
-
-  void *client = NULL;
-  DeviceInfo device_info;
-  char topic_name[128] = {0};
-};
 
 /**
  * @brief Test subscribe.
@@ -87,6 +42,9 @@ class MqttClientTest : public testing::Test {
  */
 TEST_F(MqttClientTest, subscribe) {
   int wait_cnt;
+  char topic_name[MAX_SIZE_OF_CLOUD_TOPIC] = {0};
+  HAL_Snprintf(topic_name, sizeof(topic_name), "%s/%s/data", device_info.product_id, device_info.device_name);
+
   SubscribeParams sub_params = DEFAULT_SUB_PARAMS;
 
   /**
@@ -127,6 +85,9 @@ TEST_F(MqttClientTest, subscribe) {
  *
  */
 TEST_F(MqttClientTest, publish) {
+  char topic_name[MAX_SIZE_OF_CLOUD_TOPIC] = {0};
+  HAL_Snprintf(topic_name, sizeof(topic_name), "%s/%s/data", device_info.product_id, device_info.device_name);
+
   char topic_content[] = "{\"action\": \"publish_test\", \"count\": \"0\"}";
   PublishParams pub_params = DEFAULT_PUB_PARAMS;
 
