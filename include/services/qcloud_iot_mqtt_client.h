@@ -25,6 +25,7 @@
  * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
  * <tr><td>2021-07-07 <td>1.1     <td>fancyxu   <td>support user host for unittest
  * <tr><td>2021-07-08 <td>1.1     <td>fancyxu   <td>fix code standard of IotReturnCode and QcloudIotClient
+ * <tr><td>2021-07-18 <td>1.1     <td>fancyxu   <td>fix code standard of pClient
  * </table>
  */
 
@@ -40,6 +41,12 @@ extern "C" {
 #include <stdint.h>
 
 #include "qcloud_iot_hub.h"
+
+/**
+ * @brief Max size of a topic name
+ *
+ */
+#define MAX_SIZE_OF_CLOUD_TOPIC ((MAX_SIZE_OF_DEVICE_NAME) + (MAX_SIZE_OF_PRODUCT_ID) + 64 + 6)
 
 /**
  * @brief MQTT event type
@@ -137,7 +144,7 @@ typedef struct {
     uint16_t packet_id;    // MQTT Id
     char *   topic_name;   // MQTT topic
     int      topic_len;    // topic length
-    void *   payload;      // MQTT msg payload
+    uint8_t *payload;      // MQTT msg payload
     int      payload_len;  // MQTT length of msg payload
 } MQTTMessage;
 
@@ -169,7 +176,7 @@ typedef struct {
  * @param[in] message publish message from server
  * @param[in] usr_data user data of SubscribeParams, @see SubscribeParams
  */
-typedef void (*OnMessageHandler)(void *client, MQTTMessage *message, void *usr_data);
+typedef void (*OnMessageHandler)(void *client, const MQTTMessage *message, void *usr_data);
 
 /**
  * @brief Define MQTT SUBSCRIBE callback when event happened
@@ -216,7 +223,7 @@ void *IOT_MQTT_Construct(const MQTTInitParams *params);
  * @param client pointer to mqtt client pointer
  * @return @see IotReturnCode
  */
-int IOT_MQTT_Destroy(void **pClient);
+int IOT_MQTT_Destroy(void **client);
 
 /**
  * @brief Check connection and keep alive state, read/handle MQTT packet in synchronized way.
@@ -226,7 +233,7 @@ int IOT_MQTT_Destroy(void **pClient);
  * @return QCLOUD_RET_SUCCESS when success, QCLOUD_ERR_MQTT_ATTEMPTING_RECONNECT when try reconnecting, others @see
  * IotReturnCode
  */
-int IOT_MQTT_Yield(void *pClient, uint32_t timeout_ms);
+int IOT_MQTT_Yield(void *client, uint32_t timeout_ms);
 
 /**
  * @brief Publish MQTT message.
@@ -274,7 +281,7 @@ bool IOT_MQTT_IsSubReady(void *client, const char *topic_filter);
  * @return true connected
  * @return false no connected
  */
-bool IOT_MQTT_IsConnected(void *pClient);
+bool IOT_MQTT_IsConnected(void *client);
 
 /**
  * @brief Get device info using to connect mqtt server.
@@ -282,7 +289,7 @@ bool IOT_MQTT_IsConnected(void *pClient);
  * @param[in,out] client pointer to mqtt client
  * @return @see DeviceInfo
  */
-DeviceInfo *IOT_MQTT_GetDeviceInfo(void *pClient);
+DeviceInfo *IOT_MQTT_GetDeviceInfo(void *client);
 
 #ifdef __cplusplus
 }

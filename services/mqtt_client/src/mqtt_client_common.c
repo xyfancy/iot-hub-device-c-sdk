@@ -33,7 +33,7 @@
  * @brief Get the next packet id object.
  *
  * @param[in,out] client pointer to mqtt client
- * @return uint16_t
+ * @return packet id
  */
 uint16_t get_next_packet_id(QcloudIotClient *client)
 {

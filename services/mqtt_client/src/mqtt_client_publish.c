@@ -288,7 +288,7 @@ int qcloud_iot_mqtt_handle_publish(QcloudIotClient *client)
     MQTTMessage      msg;
 
     rc = mqtt_publish_packet_deserialize(client->read_buf, client->read_buf_size, &flags, &msg.packet_id,
-                                         &msg.topic_name, &msg.topic_len, (uint8_t **)&msg.payload, &msg.payload_len);
+                                         &msg.topic_name, &msg.topic_len, &msg.payload, &msg.payload_len);
     if (rc) {
         IOT_FUNC_EXIT_RC(rc);
     }

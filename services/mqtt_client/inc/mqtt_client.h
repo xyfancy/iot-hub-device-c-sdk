@@ -87,12 +87,6 @@ extern "C" {
 #define MAX_COMMAND_TIMEOUT (20000)
 
 /**
- * @brief Max size of a topic name
- *
- */
-#define MAX_SIZE_OF_CLOUD_TOPIC ((MAX_SIZE_OF_DEVICE_NAME) + (MAX_SIZE_OF_PRODUCT_ID) + 64 + 6)
-
-/**
  * @brief Minimal TLS handshaking timeout value (unit: ms)
  *
  */
@@ -199,7 +193,7 @@ typedef struct {
  * @brief Get the next packet id object.
  *
  * @param[in,out] client pointer to mqtt client
- * @return uint16_t
+ * @return packet id
  */
 uint16_t get_next_packet_id(QcloudIotClient *client);
 
