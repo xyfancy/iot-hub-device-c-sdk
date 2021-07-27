@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-07-07 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-27 <td>1.1     <td>fancyxu   <td>support utils json
  * </table>
  */
 
@@ -31,6 +32,7 @@
 
 #include "gtest/gtest.h"
 #include "qcloud_iot_platform.h"
+#include "utils_json.h"
 #include "utils_list.h"
 #include "utils_log.h"
 
@@ -118,6 +120,44 @@ TEST(UtilsLogTest, log) {
   Log_w("Here is a warning level log test!");
   Log_e("Here is a error level log test!");
   utils_log_deinit();
+}
+
+/**
+ * @brief Test json.
+ *
+ */
+TEST(UtilsJsonTest, json) {
+  char test_json[] =
+      "{\"int_test\":100, "
+      "\"float_test\" : 1.210f , "
+      "\"bool_test\" : true, \"bool_false_test\":false,\"null_test\":null,\"str_test\":\"test\"}";
+
+  UtilsJsonValue value;
+
+  ASSERT_EQ(utils_json_value_get("int_test", strlen("int_test"), test_json, strlen(test_json), &value), 0);
+  ASSERT_EQ(strncmp(value.value, "100", value.value_len), 0);
+
+  ASSERT_EQ(utils_json_value_get("float_test", strlen("float_test"), test_json, strlen(test_json), &value), 0);
+  ASSERT_EQ(strncmp(value.value, "1.210f", value.value_len), 0);
+
+  ASSERT_EQ(utils_json_value_get("bool_test", strlen("bool_test"), test_json, strlen(test_json), &value), 0);
+  ASSERT_EQ(strncmp(value.value, "true", value.value_len), 0);
+
+  ASSERT_EQ(utils_json_value_get("bool_false_test", strlen("bool_false_test"), test_json, strlen(test_json), &value),
+            0);
+  ASSERT_EQ(strncmp(value.value, "false", value.value_len), 0);
+
+  ASSERT_EQ(utils_json_value_get("null_test", strlen("null_test"), test_json, strlen(test_json), &value), 0);
+  ASSERT_EQ(strncmp(value.value, "null", value.value_len), 0);
+
+  ASSERT_EQ(utils_json_value_get("str_test", strlen("str_test"), test_json, strlen(test_json), &value), 0);
+  ASSERT_EQ(strncmp(value.value, "test", value.value_len), 0);
+
+  char test_json_depth[] = "{\"depth_test\": {\"test\":\"test1\"}}";
+  ASSERT_EQ(utils_json_value_get("depth_test.test", strlen("depth_test.test"), test_json_depth, strlen(test_json_depth),
+                                 &value),
+            0);
+  ASSERT_EQ(strncmp(value.value, "test1", value.value_len), 0);
 }
 
 }  // namespace utils_unittest
