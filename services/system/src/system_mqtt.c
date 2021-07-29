@@ -255,9 +255,9 @@ int IOT_Sys_SyncNTPTime(void *client)
 
     rc = HAL_Timer_SetSystimeSec(time_get);
     if (rc) {
-        Log_e("set systime sec failed, timestamp %ld sec,  please check permission or other ret:%d", time_get, rc);
+        Log_e("set systime sec failed, timestamp %d sec,  please check permission or other ret:%d", time_get, rc);
     } else {
-        Log_i("set systime sec success, timestamp %ld sec", time_get);
+        Log_i("set systime sec success, timestamp %d sec", time_get);
     }
 
     rc = HAL_Timer_SetSystimeMs(local_ntptime);
