@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-07-25 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-29 <td>1.1     <td>fancyxu   <td>fix bug and add utils_json_value_data_get
  * </table>
  */
 
@@ -388,12 +389,13 @@ static int _get_json_value(char *key_end, int *remain_len, json_value *value)
         return -1;
     }
 
-    int is_object_or_array = (type == JSON_ELEMENT_ARRAY || type == JSON_ELEMENT_OBJECT);
+    int is_object_or_array           = (type == JSON_ELEMENT_ARRAY || type == JSON_ELEMENT_OBJECT);
+    int is_object_or_array_or_string = (is_object_or_array || type == JSON_ELEMENT_VALUE_STRING);
 
     value->type        = type;
-    value->pos_begin   = value_begin - is_object_or_array;  // include '[' or '{'
-    value->pos_end     = value_end;
-    value->element_len = value->pos_end - value->pos_begin + is_object_or_array;  // include ']' or '}'
+    value->pos_begin   = value_begin - is_object_or_array;                   // include '[' or '{'
+    value->element_len = value_end - value->pos_begin + is_object_or_array;  // include ']' or '}'
+    value->pos_end     = value_end + is_object_or_array_or_string;           // filter '"' , ']' or '}'
     return 0;
 }
 
@@ -488,4 +490,37 @@ int utils_json_value_get(const char *key, int key_len, const char *src, int src_
     value->value     = value_tmp.pos_begin;
     value->value_len = value_tmp.element_len;
     return 0;
+}
+
+/**
+ * @brief Get data of value with type.
+ *
+ * @param[in] value @see UtilsJsonValue
+ * @param[in] type value type, string can use value directly. @see UtilsJsonValueType
+ * @param[out] data data pointer, user should
+ * @return 0 for success
+ */
+int utils_json_value_data_get(UtilsJsonValue value, UtilsJsonValueType type, void *data)
+{
+    char value_tmp[32];
+    strncpy(value_tmp, value.value, value.value_len);
+
+    switch (type) {
+        case UTILS_JSON_VALUE_TYPE_INT32:
+            return !(sscanf(value_tmp, "%" SCNi32, (int32_t *)data) == 1);
+        case UTILS_JSON_VALUE_TYPE_INT64:
+            return !(sscanf(value_tmp, "%" SCNi64, (int64_t *)data) == 1);
+        case UTILS_JSON_VALUE_TYPE_UINT32:
+            return !(sscanf(value_tmp, "%" SCNu32, (uint32_t *)data) == 1);
+        case UTILS_JSON_VALUE_TYPE_UINT64:
+            return !(sscanf(value_tmp, "%" SCNu64, (uint64_t *)data) == 1);
+        case UTILS_JSON_VALUE_TYPE_FLOAT:
+            return !(sscanf(value_tmp, "%f", (float *)data) == 1);
+        case UTILS_JSON_VALUE_TYPE_DOUBLE:
+            return !(sscanf(value_tmp, "%lf", (double *)data) == 1);
+        case UTILS_JSON_VALUE_TYPE_BOOLEAN:
+            *(int *)data = strcmp(value_tmp, "false");
+            return 0;
+    }
+    return -1;
 }

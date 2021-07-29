@@ -23,6 +23,7 @@
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-07-24 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-29 <td>1.1     <td>fancyxu   <td>fix bug and add utils_json_value_data_get
  * </table>
  */
 
@@ -37,6 +38,21 @@ extern "C" {
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
+#include <inttypes.h>
+
+/**
+ * @brief Json value type
+ *
+ */
+typedef enum {
+    UTILS_JSON_VALUE_TYPE_INT32 = 0,
+    UTILS_JSON_VALUE_TYPE_INT64,
+    UTILS_JSON_VALUE_TYPE_UINT32,
+    UTILS_JSON_VALUE_TYPE_UINT64,
+    UTILS_JSON_VALUE_TYPE_FLOAT,
+    UTILS_JSON_VALUE_TYPE_DOUBLE,
+    UTILS_JSON_VALUE_TYPE_BOOLEAN,
+} UtilsJsonValueType;
 
 /**
  * @brief Json value
@@ -58,6 +74,16 @@ typedef struct {
  * @return 0 for success
  */
 int utils_json_value_get(const char *key, int key_len, const char *src, int src_len, UtilsJsonValue *value);
+
+/**
+ * @brief Get data of value with type.
+ *
+ * @param[in] value @see UtilsJsonValue
+ * @param[in] type value type, string can use value directly @see UtilsJsonValueType
+ * @param[out] data data pointer, user should match the type
+ * @return 0 for success
+ */
+int utils_json_value_data_get(UtilsJsonValue value, UtilsJsonValueType type, void *data);
 
 #ifdef __cplusplus
 }

@@ -24,6 +24,7 @@
  * <tr><th>Date       <th>Version <th>Author    <th>Description
  * <tr><td>2021-07-07 <td>1.0     <td>fancyxu   <td>first commit
  * <tr><td>2021-07-27 <td>1.1     <td>fancyxu   <td>support utils json
+ * <tr><td>2021-07-29 <td>1.1     <td>fancyxu   <td>rename HAL_Timer and add utils json test
  * </table>
  */
 
@@ -111,7 +112,7 @@ TEST(UtilsLogTest, log) {
   LogHandleFunc func;
   func.log_malloc = HAL_Malloc;
   func.log_free = HAL_Free;
-  func.log_get_current_time_str = HAL_Timer_current;
+  func.log_get_current_time_str = HAL_Timer_Current;
   func.log_printf = HAL_Printf;
   func.log_handle = NULL;
   ASSERT_EQ(utils_log_init(func, eLOG_DEBUG, 2048), 0);
@@ -128,17 +129,20 @@ TEST(UtilsLogTest, log) {
  */
 TEST(UtilsJsonTest, json) {
   char test_json[] =
-      "{\"int_test\":100, "
-      "\"float_test\" : 1.210f , "
-      "\"bool_test\" : true, \"bool_false_test\":false,\"null_test\":null,\"str_test\":\"test\"}";
+      "{\"str_test\":\"test\",\"int_test\":100,\"float_test\":1.210f,\"bool_test\":true,"
+      "\"bool_false_test\":false,\"null_test\":null}";
 
   UtilsJsonValue value;
 
+  int data_int = 0;
   ASSERT_EQ(utils_json_value_get("int_test", strlen("int_test"), test_json, strlen(test_json), &value), 0);
-  ASSERT_EQ(strncmp(value.value, "100", value.value_len), 0);
+  ASSERT_EQ(utils_json_value_data_get(value, UTILS_JSON_VALUE_TYPE_INT32, &data_int), 0);
+  ASSERT_EQ(data_int, 100);
 
+  float data_float = 0.0;
   ASSERT_EQ(utils_json_value_get("float_test", strlen("float_test"), test_json, strlen(test_json), &value), 0);
-  ASSERT_EQ(strncmp(value.value, "1.210f", value.value_len), 0);
+  ASSERT_EQ(utils_json_value_data_get(value, UTILS_JSON_VALUE_TYPE_FLOAT, &data_float), 0);
+  ASSERT_EQ(data_float, 1.210f);
 
   ASSERT_EQ(utils_json_value_get("bool_test", strlen("bool_test"), test_json, strlen(test_json), &value), 0);
   ASSERT_EQ(strncmp(value.value, "true", value.value_len), 0);
