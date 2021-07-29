@@ -55,13 +55,13 @@ TEST_F(MqttClientTest, subscribe) {
   sub_params.qos = QOS0;
   ASSERT_GE(IOT_MQTT_Subscribe(client, topic_name, &sub_params), 0);
   while (!IOT_MQTT_IsSubReady(client, topic_name) && (wait_cnt > 0)) {
-    ASSERT_EQ(IOT_MQTT_Yield(client, 500), 0);
+    ASSERT_EQ(IOT_MQTT_Yield(client, QCLOUD_IOT_MQTT_YIELD_TIMEOUT), 0);
     wait_cnt--;
   }
   ASSERT_NE(wait_cnt, 0);
 
   ASSERT_GE(IOT_MQTT_Unsubscribe(client, topic_name), 0);
-  ASSERT_EQ(IOT_MQTT_Yield(client, 500), 0);
+  ASSERT_EQ(IOT_MQTT_Yield(client, QCLOUD_IOT_MQTT_YIELD_TIMEOUT), 0);
 
   /**
    * @brief QOS1
@@ -71,13 +71,21 @@ TEST_F(MqttClientTest, subscribe) {
   sub_params.qos = QOS1;
   ASSERT_GE(IOT_MQTT_Subscribe(client, topic_name, &sub_params), 0);
   while (!IOT_MQTT_IsSubReady(client, topic_name) && (wait_cnt > 0)) {
-    ASSERT_EQ(IOT_MQTT_Yield(client, 500), 0);
+    ASSERT_EQ(IOT_MQTT_Yield(client, QCLOUD_IOT_MQTT_YIELD_TIMEOUT), 0);
     wait_cnt--;
   }
   ASSERT_NE(wait_cnt, 0);
 
   ASSERT_GE(IOT_MQTT_Unsubscribe(client, topic_name), 0);
-  ASSERT_EQ(IOT_MQTT_Yield(client, 500), 0);
+  ASSERT_EQ(IOT_MQTT_Yield(client, QCLOUD_IOT_MQTT_YIELD_TIMEOUT), 0);
+
+  /**
+   * @brief sub sync
+   *
+   */
+  ASSERT_GE(IOT_MQTT_SubscribeSync(client, topic_name, &sub_params), 0);
+  ASSERT_GE(IOT_MQTT_Unsubscribe(client, topic_name), 0);
+  ASSERT_EQ(IOT_MQTT_Yield(client, QCLOUD_IOT_MQTT_YIELD_TIMEOUT), 0);
 }
 
 /**

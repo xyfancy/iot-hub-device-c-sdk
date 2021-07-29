@@ -197,22 +197,6 @@ int HAL_Snprintf(char *str, const int len, const char *fmt, ...)
 }
 
 /**
- * @brief Get utc time ms timestamp.
- *
- * @return timestamp
- */
-uint32_t HAL_GetTimeMs(void)
-{
-    struct timeval time_val = {0};
-    uint32_t       time_ms;
-
-    gettimeofday(&time_val, NULL);
-    time_ms = time_val.tv_sec * 1000 + time_val.tv_usec / 1000;
-
-    return time_ms;
-}
-
-/**
  * @brief Sleep for ms
  *
  * @param[in] ms ms to sleep

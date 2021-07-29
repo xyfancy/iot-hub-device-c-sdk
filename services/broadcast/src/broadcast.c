@@ -71,8 +71,7 @@ int IOT_Broadcast_Init(void *client, OnBroadcastArrivedCallback callback, void *
     POINTER_SANITY_CHECK(client, QCLOUD_ERR_INVAL);
     POINTER_SANITY_CHECK(callback, QCLOUD_ERR_INVAL);
 
-    int             rc;
-    int             cnt_sub = 10;
+    int             rc = 0;
     char            broadcast_topic[MAX_SIZE_OF_CLOUD_TOPIC];
     SubscribeParams sub_params = DEFAULT_SUB_PARAMS;
 
@@ -80,37 +79,25 @@ int IOT_Broadcast_Init(void *client, OnBroadcastArrivedCallback callback, void *
      * @brief Using static for only one broardcast topic can be subscribed to.
      *
      */
-    static QcloudIotBroadcastContext sg_broadcast_context;
-    sg_broadcast_context.callback = callback;
-    sg_broadcast_context.usr_data = usr_data;
+    QcloudIotBroadcastContext *broadcast_context =
+        (QcloudIotBroadcastContext *)HAL_Malloc(sizeof(QcloudIotBroadcastContext));
+    broadcast_context->callback = callback;
+    broadcast_context->usr_data = usr_data;
 
     HAL_Snprintf(broadcast_topic, MAX_SIZE_OF_CLOUD_TOPIC, "$broadcast/rxd/%s/%s",
                  STRING_PTR_PRINT_SANITY_CHECK(IOT_MQTT_GetDeviceInfo(client)->product_id),
                  STRING_PTR_PRINT_SANITY_CHECK(IOT_MQTT_GetDeviceInfo(client)->device_name));
 
-    if (IOT_MQTT_IsSubReady(client, broadcast_topic)) {
-        return QCLOUD_RET_SUCCESS;
-    }
-
     sub_params.on_message_handler = _broadcast_message_cb;
     sub_params.qos                = QOS1;
-    sub_params.user_data          = &sg_broadcast_context;
+    sub_params.user_data          = broadcast_context;
+    sub_params.user_data_free     = HAL_Free;
 
-    rc = IOT_MQTT_Subscribe(client, broadcast_topic, &sub_params);
-    if (rc < 0) {
-        Log_e("broadcast topic subscribe failed: %d, cnt: %d", rc, cnt_sub);
-        return rc;
+    rc = IOT_MQTT_SubscribeSync(client, broadcast_topic, &sub_params);
+    if (rc) {
+        HAL_Free(broadcast_context);
     }
-
-    do {
-        /**
-         * @brief wait for subscription result
-         *
-         */
-        rc = IOT_MQTT_Yield(client, 500);
-    } while (cnt_sub-- >= 0 && !rc && !IOT_MQTT_IsSubReady(client, broadcast_topic));
-
-    return IOT_MQTT_IsSubReady(client, broadcast_topic) ? QCLOUD_RET_SUCCESS : QCLOUD_ERR_FAILURE;
+    return rc;
 }
 
 /**

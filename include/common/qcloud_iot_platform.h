@@ -123,13 +123,6 @@ void HAL_Printf(const char *fmt, ...);
 int HAL_Snprintf(char *str, const int len, const char *fmt, ...);
 
 /**
- * @brief Get utc time ms timestamp.
- *
- * @return timestamp
- */
-uint32_t HAL_GetTimeMs(void);
-
-/**
  * @brief Sleep for ms.
  *
  * @param[in] ms ms to sleep
@@ -216,7 +209,7 @@ typedef struct {
  * @return true expired
  * @return false no expired
  */
-bool HAL_Timer_expired(Timer *timer);
+bool HAL_Timer_Expired(Timer *timer);
 
 /**
  * @brief Countdown ms.
@@ -224,7 +217,7 @@ bool HAL_Timer_expired(Timer *timer);
  * @param[in,out] timer @see Timer
  * @param[in] timeout_ms ms to count down
  */
-void HAL_Timer_countdown_ms(Timer *timer, unsigned int timeout_ms);
+void HAL_Timer_CountdownMs(Timer *timer, uint32_t timeout_ms);
 
 /**
  * @brief Countdown second
@@ -232,7 +225,7 @@ void HAL_Timer_countdown_ms(Timer *timer, unsigned int timeout_ms);
  * @param[in,out] timer @see Timer
  * @param[in] timeout second to count down
  */
-void HAL_Timer_countdown(Timer *timer, unsigned int timeout);
+void HAL_Timer_Countdown(Timer *timer, uint32_t timeout);
 
 /**
  * @brief Timer remain ms.
@@ -240,21 +233,28 @@ void HAL_Timer_countdown(Timer *timer, unsigned int timeout);
  * @param[in] timer @see Timer
  * @return ms
  */
-int HAL_Timer_remain(Timer *timer);
+uint32_t HAL_Timer_Remain(Timer *timer);
 
 /**
  * @brief time format string
  *
  * @return time format string, such as "2021-05-31 15:58:46"
  */
-char *HAL_Timer_current(void);
+char *HAL_Timer_Current(void);
 
 /**
  * @brief Get current utf timestamp of second
  *
  * @return timestamp
  */
-int HAL_Timer_current_sec(void);
+uint32_t HAL_Timer_CurrentSec(void);
+
+/**
+ * @brief Get utc time ms timestamp.
+ *
+ * @return timestamp
+ */
+uint64_t HAL_Timer_CurrentMs(void);
 
 /**
  * @brief Set system time using ms timestamp
@@ -262,7 +262,7 @@ int HAL_Timer_current_sec(void);
  * @param[in] timestamp_sec timestamp to set
  * @return 0 for success
  */
-int HAL_Timer_set_systime_sec(size_t timestamp_sec);
+int HAL_Timer_SetSystimeSec(uint32_t timestamp_sec);
 
 /**
  * @brief Set system time using second timestamp
@@ -270,7 +270,7 @@ int HAL_Timer_set_systime_sec(size_t timestamp_sec);
  * @param[in] timestamp_ms
  * @return 0 for success
  */
-int HAL_Timer_set_systime_ms(size_t timestamp_ms);
+int HAL_Timer_SetSystimeMs(uint64_t timestamp_ms);
 
 /**************************************************************************************
  * network tcp

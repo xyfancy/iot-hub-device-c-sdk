@@ -42,7 +42,7 @@ extern "C" {
  * @return true expired
  * @return false no expired
  */
-bool HAL_Timer_expired(Timer *timer)
+bool HAL_Timer_Expired(Timer *timer)
 {
     struct timeval now, res;
     gettimeofday(&now, NULL);
@@ -56,7 +56,7 @@ bool HAL_Timer_expired(Timer *timer)
  * @param[in,out] timer @see Timer
  * @param[in] timeout_ms ms to count down
  */
-void HAL_Timer_countdown_ms(Timer *timer, unsigned int timeout_ms)
+void HAL_Timer_CountdownMs(Timer *timer, unsigned int timeout_ms)
 {
     struct timeval now;
     gettimeofday(&now, NULL);
@@ -70,7 +70,7 @@ void HAL_Timer_countdown_ms(Timer *timer, unsigned int timeout_ms)
  * @param[in,out] timer @see Timer
  * @param[in] timeout second to count down
  */
-void HAL_Timer_countdown(Timer *timer, unsigned int timeout)
+void HAL_Timer_Countdown(Timer *timer, unsigned int timeout)
 {
     struct timeval now;
     gettimeofday(&now, NULL);
@@ -84,7 +84,7 @@ void HAL_Timer_countdown(Timer *timer, unsigned int timeout)
  * @param[in] timer @see Timer
  * @return ms
  */
-int HAL_Timer_remain(Timer *timer)
+uint32_t HAL_Timer_Remain(Timer *timer)
 {
     struct timeval now, res;
     gettimeofday(&now, NULL);
@@ -97,7 +97,7 @@ int HAL_Timer_remain(Timer *timer)
  *
  * @return time format string, such as "2021-05-31 15:58:46"
  */
-char *HAL_Timer_current(void)
+char *HAL_Timer_Current(void)
 {
     static char    time_str[20];
     struct timeval tv;
@@ -114,7 +114,7 @@ char *HAL_Timer_current(void)
  *
  * @return timestamp
  */
-int HAL_Timer_current_sec(void)
+uint32_t HAL_Timer_CurrentSec(void)
 {
     struct timeval tv;
     gettimeofday(&tv, NULL);
@@ -123,12 +123,27 @@ int HAL_Timer_current_sec(void)
 }
 
 /**
- * @brief Set system time using ms timestamp
+ * @brief Get utc time ms timestamp.
+ *
+ * @return timestamp
+ */
+uint64_t HAL_Timer_CurrentMs(void)
+{
+    struct timeval time_val = {0};
+    uint64_t       time_ms;
+
+    gettimeofday(&time_val, NULL);
+    time_ms = time_val.tv_sec * 1000 + time_val.tv_usec / 1000;
+    return time_ms;
+}
+
+/**
+ * @brief Set system time using second timestamp
  *
  * @param[in] timestamp_sec timestamp to set
  * @return 0 for success
  */
-int HAL_Timer_set_systime_sec(size_t timestamp_sec)
+int HAL_Timer_SetSystimeSec(uint32_t timestamp_sec)
 {
     struct timeval stime;
     stime.tv_sec  = timestamp_sec;
@@ -141,12 +156,12 @@ int HAL_Timer_set_systime_sec(size_t timestamp_sec)
 }
 
 /**
- * @brief Set system time using second timestamp
+ * @brief Set system time using ms timestamp
  *
  * @param[in] timestamp_ms
  * @return 0 for success
  */
-int HAL_Timer_set_systime_ms(size_t timestamp_ms)
+int HAL_Timer_SetSystimeMs(uint64_t timestamp_ms)
 {
     struct timeval stime;
     stime.tv_sec  = (timestamp_ms / 1000);

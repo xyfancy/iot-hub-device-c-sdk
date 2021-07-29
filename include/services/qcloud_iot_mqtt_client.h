@@ -198,15 +198,16 @@ typedef struct {
     OnMessageHandler  on_message_handler;   /**< callback when message arrived */
     OnSubEventHandler on_sub_event_handler; /**< callback when event happened */
     void *            user_data;            /**< user context for callback */
+    void (*user_data_free)(void *);         /**< user data free when sub handle remove */
 } SubscribeParams;
 
 /**
  * Default MQTT subscribe parameters
  *
  */
-#define DEFAULT_SUB_PARAMS     \
-    {                          \
-        QOS0, NULL, NULL, NULL \
+#define DEFAULT_SUB_PARAMS           \
+    {                                \
+        QOS0, NULL, NULL, NULL, NULL \
     }
 
 /**
@@ -273,6 +274,25 @@ int IOT_MQTT_Unsubscribe(void *client, const char *topic_filter);
  * @return false not ready
  */
 bool IOT_MQTT_IsSubReady(void *client, const char *topic_filter);
+
+/**
+ * @brief Get user data in subscribe.
+ *
+ * @param[in,out] client pointer to mqtt client
+ * @param[in] topic_filter topic filter to subscribe
+ * @return NULL or user data
+ */
+void *IOT_MQTT_GetSubUsrData(void *client, const char *topic_filter);
+
+/**
+ * @brief Subscribe and wait sub ready.
+ *
+ * @param[in,out] client pointer to mqtt client
+ * @param[in] topic_filter topic filter to subscribe
+ * @param[in] params @see SubscribeParams
+ * @return @see IotReturnCode
+ */
+int IOT_MQTT_SubscribeSync(void *client, const char *topic_filter, const SubscribeParams *params);
 
 /**
  * @brief Check if MQTT is connected.

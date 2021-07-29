@@ -30,6 +30,24 @@
 #include "mqtt_client.h"
 
 /**
+ * @brief Free topic_filter and user_data
+ *
+ * @param[in] handler subtopic handle
+ */
+static void _clear_sub_handle(SubTopicHandle *handler)
+{
+    if (handler->topic_filter) {
+        HAL_Free(handler->topic_filter);
+        handler->topic_filter = NULL;
+    }
+
+    if (handler->params.user_data_free) {
+        handler->params.user_data_free(handler->params.user_data);
+        handler->params.user_data = NULL;
+    }
+}
+
+/**
  * @brief Push node to subscribe(unsubscribe) ACK wait list.
  *
  * @param[in,out] client pointer to mqtt_client
@@ -59,7 +77,7 @@ static int _push_sub_info_to_list(QcloudIotClient *client, int packet_len, uint1
     sub_info->packet_id = packet_id;
     sub_info->handler   = *handler;
     memcpy(sub_info->buf, client->write_buf, packet_len);
-    HAL_Timer_countdown_ms(&sub_info->sub_start_time, client->command_timeout_ms);
+    HAL_Timer_CountdownMs(&sub_info->sub_start_time, client->command_timeout_ms);
 
     *node = utils_list_push(list, sub_info);
     if (!*node) {
@@ -72,13 +90,13 @@ static int _push_sub_info_to_list(QcloudIotClient *client, int packet_len, uint1
 }
 
 /**
- * @brief Remove node signed with packet id from subscribe ACK wait list, and return the sub handler
+ * @brief Pop node signed with packet id from subscribe ACK wait list, and return the sub handler
  *
  * @param[in,out] client pointer to mqtt_client
  * @param[in] packet_id packet id
  * @param[out] sub_handle @see SubTopicHandle
  */
-static void _remove_sub_info_from_list(QcloudIotClient *client, uint16_t packet_id, SubTopicHandle *sub_handle)
+static void _pop_sub_info_from_list(QcloudIotClient *client, uint16_t packet_id, SubTopicHandle *sub_handle)
 {
     void *node, *iter = NULL;
     void *list = client->list_sub_wait_ack;
@@ -135,9 +153,7 @@ static bool _remove_sub_handle_from_array(QcloudIotClient *client, const char *t
                 client->sub_handles[i].params.on_sub_event_handler(client, MQTT_EVENT_UNSUBSCRIBE,
                                                                    client->sub_handles[i].params.user_data);
             }
-            // free the topic filter malloced in qcloud_iot_mqtt_subscribe
-            HAL_Free((void *)client->sub_handles[i].topic_filter);
-            client->sub_handles[i].topic_filter = NULL;
+            _clear_sub_handle(&client->sub_handles[i]);
             // we don't want to break here, if the same topic is registered*with 2 callbacks.Unlikely scenario
             topic_exists = true;
         }
@@ -147,7 +163,7 @@ static bool _remove_sub_handle_from_array(QcloudIotClient *client, const char *t
 }
 
 /**
- * @brief Add sub handle when unsubscribe.
+ * @brief Add sub handle when subscribe.
  *
  * @param[in,out] client pointer to mqtt_client
  * @param[in] sub_handle sub_handle to be add to array
@@ -166,7 +182,7 @@ static int _add_sub_handle_to_array(QcloudIotClient *client, const SubTopicHandl
             if (!strcmp(client->sub_handles[i].topic_filter, sub_handle->topic_filter)) {
                 i_free = i;
                 // free the memory before
-                HAL_Free(client->sub_handles->topic_filter);
+                _clear_sub_handle(&client->sub_handles[i]);
                 Log_w("Identical topic found: %s", sub_handle->topic_filter);
                 break;
             }
@@ -209,6 +225,9 @@ int qcloud_iot_mqtt_subscribe(QcloudIotClient *client, const char *topic_filter,
     }
     strncpy(topic_filter_stored, topic_filter, strlen(topic_filter) + 1);
 
+    sub_handle.topic_filter = topic_filter_stored;
+    sub_handle.params       = *params;
+
     packet_id = get_next_packet_id(client);
     Log_d("subscribe topic_name=%s|packet_id=%d", topic_filter_stored, packet_id);
     // serialize packet
@@ -222,9 +241,6 @@ int qcloud_iot_mqtt_subscribe(QcloudIotClient *client, const char *topic_filter,
     }
 
     // add node into sub ack wait list
-    sub_handle.topic_filter = topic_filter_stored;
-    sub_handle.params       = *params;
-
     rc = _push_sub_info_to_list(client, packet_len, packet_id, SUBSCRIBE, &sub_handle, &node);
     if (rc) {
         HAL_MutexUnlock(client->lock_write_buf);
@@ -266,8 +282,8 @@ int qcloud_iot_mqtt_handle_suback(QcloudIotClient *client)
     }
     msg.msg = (void *)(uintptr_t)packet_id;
 
-    // remove sub info and get sub handle
-    _remove_sub_info_from_list(client, packet_id, &sub_handle);
+    // pop sub info and get sub handle
+    _pop_sub_info_from_list(client, packet_id, &sub_handle);
     if (!sub_handle.topic_filter) {
         Log_e("can't get sub handle from list!");
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_SUB);
@@ -284,7 +300,7 @@ int qcloud_iot_mqtt_handle_suback(QcloudIotClient *client)
         msg.event_type = MQTT_EVENT_SUBSCRIBE_NACK;
         event_type     = MQTT_EVENT_SUBSCRIBE_NACK;
         Log_e("MQTT SUBSCRIBE failed, packet_id: %u topic: %s", packet_id, sub_handle.topic_filter);
-        HAL_Free(sub_handle.topic_filter);
+        _clear_sub_handle(&sub_handle);
         rc = QCLOUD_ERR_MQTT_SUB;
     }
 
@@ -330,6 +346,7 @@ int qcloud_iot_mqtt_unsubscribe(QcloudIotClient *client, const char *topic_filte
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_FAILURE);
     }
     strncpy(topic_filter_stored, topic_filter, strlen(topic_filter) + 1);
+    sub_handle.topic_filter = topic_filter_stored;
 
     packet_id = get_next_packet_id(client);
     Log_d("unsubscribe topic_name=%s|packet_id=%d", topic_filter_stored, packet_id);
@@ -344,7 +361,6 @@ int qcloud_iot_mqtt_unsubscribe(QcloudIotClient *client, const char *topic_filte
     }
 
     // add node into sub ack wait list
-    sub_handle.topic_filter = topic_filter_stored;
 
     rc = _push_sub_info_to_list(client, packet_len, packet_id, UNSUBSCRIBE, &sub_handle, &node);
     if (rc) {
@@ -363,7 +379,7 @@ int qcloud_iot_mqtt_unsubscribe(QcloudIotClient *client, const char *topic_filte
 
     IOT_FUNC_EXIT_RC(packet_id);
 exit:
-    HAL_Free(topic_filter_stored);
+    _clear_sub_handle(&sub_handle);
     IOT_FUNC_EXIT_RC(rc);
 }
 
@@ -386,10 +402,8 @@ int qcloud_iot_mqtt_handle_unsuback(QcloudIotClient *client)
         IOT_FUNC_EXIT_RC(rc);
     }
 
-    _remove_sub_info_from_list(client, packet_id, &sub_handle);
-    if (sub_handle.topic_filter) {
-        HAL_Free(sub_handle.topic_filter);
-    }
+    _pop_sub_info_from_list(client, packet_id, &sub_handle);
+    _clear_sub_handle(&sub_handle);
 
     if (client->event_handle.h_fp) {
         msg.event_type = MQTT_EVENT_UNSUBSCRIBE_SUCCESS;
@@ -433,7 +447,7 @@ void qcloud_iot_mqtt_check_sub_timeout(QcloudIotClient *client)
         }
 
         // check the request if timeout or not
-        if (HAL_Timer_remain(&sub_info->sub_start_time) > 0) {
+        if (HAL_Timer_Remain(&sub_info->sub_start_time) > 0) {
             continue;
         }
 
@@ -450,9 +464,7 @@ void qcloud_iot_mqtt_check_sub_timeout(QcloudIotClient *client)
             client->event_handle.h_fp(client, client->event_handle.context, &msg);
         }
 
-        if (sub_info->handler.topic_filter) {
-            HAL_Free((void *)(sub_info->handler.topic_filter));
-        }
+        _clear_sub_handle(&sub_info->handler);
 
         utils_list_remove(list, node);
     }
@@ -510,4 +522,27 @@ bool qcloud_iot_mqtt_is_sub_ready(QcloudIotClient *client, const char *topic_fil
     }
     HAL_MutexUnlock(client->lock_generic);
     return false;
+}
+
+/**
+ * @brief Get usr data, usr should handle lock/unlock usrdata itself in callback and caller.
+ *
+ * @param[in,out] client pointer to mqtt client
+ * @param[in] topic_filter topic filter
+ * @return NULL or user data
+ */
+void *qcloud_iot_mqtt_get_subscribe_usr_data(QcloudIotClient *client, const char *topic_filter)
+{
+    IOT_FUNC_ENTRY;
+    int i = 0;
+    HAL_MutexLock(client->lock_generic);
+    for (i = 0; i < MAX_MESSAGE_HANDLERS; ++i) {
+        if ((client->sub_handles[i].topic_filter && !strcmp(client->sub_handles[i].topic_filter, topic_filter)) ||
+            strstr(topic_filter, "/#") || strstr(topic_filter, "/+")) {
+            HAL_MutexUnlock(client->lock_generic);
+            return client->sub_handles[i].params.user_data;
+        }
+    }
+    HAL_MutexUnlock(client->lock_generic);
+    return NULL;
 }

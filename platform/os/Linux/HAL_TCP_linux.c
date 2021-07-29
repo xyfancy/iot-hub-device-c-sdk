@@ -135,13 +135,13 @@ int HAL_TCP_Write(int fd, const uint8_t *buf, uint32_t len, uint32_t timeout_ms,
     fd_set         sets;
     struct timeval timeout;
 
-    HAL_Timer_countdown_ms(&timer_send, timeout_ms);
+    HAL_Timer_CountdownMs(&timer_send, timeout_ms);
     len_sent = 0;
 
     /* send one time if timeout_ms is value 0 */
-    while ((len_sent < len) && !HAL_Timer_expired(&timer_send)) {
-        timeout.tv_sec  = HAL_Timer_remain(&timer_send) / 1000;
-        timeout.tv_usec = HAL_Timer_remain(&timer_send) % 1000 * 1000;
+    while ((len_sent < len) && !HAL_Timer_Expired(&timer_send)) {
+        timeout.tv_sec  = HAL_Timer_Remain(&timer_send) / 1000;
+        timeout.tv_usec = HAL_Timer_Remain(&timer_send) % 1000 * 1000;
 
         FD_ZERO(&sets);
         FD_SET(fd, &sets);
@@ -199,15 +199,15 @@ int HAL_TCP_Read(int fd, uint8_t *buf, uint32_t len, uint32_t timeout_ms, size_t
     fd_set         sets;
     struct timeval timeout;
 
-    HAL_Timer_countdown_ms(&timer_recv, timeout_ms);
+    HAL_Timer_CountdownMs(&timer_recv, timeout_ms);
     len_recv = 0;
 
     do {
         FD_ZERO(&sets);
         FD_SET(fd, &sets);
 
-        timeout.tv_sec  = HAL_Timer_remain(&timer_recv) / 1000;
-        timeout.tv_usec = HAL_Timer_remain(&timer_recv) % 1000 * 1000;
+        timeout.tv_sec  = HAL_Timer_Remain(&timer_recv) / 1000;
+        timeout.tv_usec = HAL_Timer_Remain(&timer_recv) % 1000 * 1000;
 
         rc = select(fd + 1, &sets, NULL, NULL, &timeout);
         if (!rc) {

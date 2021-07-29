@@ -56,7 +56,7 @@ uint16_t get_next_packet_id(QcloudIotClient *client)
 void get_next_conn_id(char *conn_id)
 {
     int i;
-    srand((unsigned)HAL_GetTimeMs());
+    srand(HAL_Timer_CurrentSec());
     for (i = 0; i < MAX_CONN_ID_LEN - 1; i++) {
         int flag = rand() % 3;
         switch (flag) {
@@ -123,11 +123,11 @@ int send_mqtt_packet(QcloudIotClient *client, size_t length)
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_BUF_TOO_SHORT);
     }
 
-    HAL_Timer_countdown_ms(&timer, client->command_timeout_ms);
+    HAL_Timer_CountdownMs(&timer, client->command_timeout_ms);
 
-    while (sent < length && !HAL_Timer_expired(&timer)) {
+    while (sent < length && !HAL_Timer_Expired(&timer)) {
         rc = client->network_stack.write(&(client->network_stack), &client->write_buf[sent], length,
-                                         HAL_Timer_remain(&timer), &sent_len);
+                                         HAL_Timer_Remain(&timer), &sent_len);
         if (rc) {
             // there was an error writing the data
             break;
@@ -141,8 +141,8 @@ int send_mqtt_packet(QcloudIotClient *client, size_t length)
     }
 
     // network_stack.write return success but sent != length, check because timeout
-    if (rc == QCLOUD_RET_SUCCESS && HAL_Timer_expired(&timer)) {
-        Log_e("send timer expired :%d!", HAL_Timer_remain(&timer));
+    if (rc == QCLOUD_RET_SUCCESS && HAL_Timer_Expired(&timer)) {
+        Log_e("send timer expired :%d!", HAL_Timer_Remain(&timer));
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_REQUEST_TIMEOUT);
     }
 

@@ -165,7 +165,7 @@ int main(int argc, char **argv)
     LogHandleFunc func;
     func.log_malloc               = HAL_Malloc;
     func.log_free                 = HAL_Free;
-    func.log_get_current_time_str = HAL_Timer_current;
+    func.log_get_current_time_str = HAL_Timer_Current;
     func.log_printf               = HAL_Printf;
     func.log_handle               = NULL;
     utils_log_init(func, eLOG_DEBUG, 2048);
@@ -201,7 +201,7 @@ int main(int argc, char **argv)
     }
 
     do {
-        rc = IOT_MQTT_Yield(client, 2000);
+        rc = IOT_MQTT_Yield(client, QCLOUD_IOT_MQTT_YIELD_TIMEOUT);
         if (rc == QCLOUD_ERR_MQTT_ATTEMPTING_RECONNECT) {
             HAL_SleepMs(1000);
             continue;

@@ -324,9 +324,9 @@ int qcloud_iot_tls_client_write(uintptr_t handle, unsigned char *msg, size_t tot
     int    write_rc = 0;
 
     TLSHandle *tls_handle = (TLSHandle *)handle;
-    HAL_Timer_countdown_ms(&timer, (unsigned int)timeout_ms);
+    HAL_Timer_CountdownMs(&timer, (unsigned int)timeout_ms);
 
-    for (written_so_far = 0; written_so_far < total_len && !HAL_Timer_expired(&timer); written_so_far += write_rc) {
+    for (written_so_far = 0; written_so_far < total_len && !HAL_Timer_Expired(&timer); written_so_far += write_rc) {
         do {
             write_rc = mbedtls_ssl_write(&tls_handle->ssl, msg + written_so_far, total_len - written_so_far);
             if (write_rc < 0 && write_rc != MBEDTLS_ERR_SSL_WANT_READ && write_rc != MBEDTLS_ERR_SSL_WANT_WRITE) {
@@ -334,14 +334,14 @@ int qcloud_iot_tls_client_write(uintptr_t handle, unsigned char *msg, size_t tot
                 return QCLOUD_ERR_SSL_WRITE;
             }
 
-            if (HAL_Timer_expired(&timer)) {
+            if (HAL_Timer_Expired(&timer)) {
                 break;
             }
         } while (write_rc <= 0);
     }
 
     *written_len = written_so_far;
-    if (HAL_Timer_expired(&timer) && written_so_far != total_len) {
+    if (HAL_Timer_Expired(&timer) && written_so_far != total_len) {
         return QCLOUD_ERR_SSL_WRITE_TIMEOUT;
     }
     return QCLOUD_RET_SUCCESS;
@@ -364,7 +364,7 @@ int qcloud_iot_tls_client_read(uintptr_t handle, unsigned char *msg, size_t tota
     int   read_rc;
 
     TLSHandle *tls_handle = (TLSHandle *)handle;
-    HAL_Timer_countdown_ms(&timer, timeout_ms);
+    HAL_Timer_CountdownMs(&timer, timeout_ms);
 
     *read_len = 0;
 
@@ -377,7 +377,7 @@ int qcloud_iot_tls_client_read(uintptr_t handle, unsigned char *msg, size_t tota
         }
         *read_len += read_rc > 0 ? read_rc : 0;
 
-        if (HAL_Timer_expired(&timer)) {
+        if (HAL_Timer_Expired(&timer)) {
             break;
         }
     } while (*read_len < total_len);

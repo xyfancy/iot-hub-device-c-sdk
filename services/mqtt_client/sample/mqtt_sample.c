@@ -191,24 +191,7 @@ static int _subscribe_topic_wait_result(void *client, char *topic_keyword, QoS q
     sub_params.qos                = qos;
     sub_params.on_message_handler = _on_message_callback;
 
-    int wait_cnt = 5;
-    int rc       = 0;
-
-    rc = IOT_MQTT_Subscribe(client, topic_name, &sub_params);
-    if (rc < 0) {
-        Log_e("MQTT subscribe FAILED: %d", rc);
-        return rc;
-    }
-
-    do {
-        /**
-         * @brief wait for subscription result
-         *
-         */
-        rc = IOT_MQTT_Yield(client, 1000);
-    } while (!IOT_MQTT_IsSubReady(client, topic_name) && (wait_cnt-- >= 0));
-
-    return IOT_MQTT_IsSubReady(client, topic_name) ? QCLOUD_RET_SUCCESS : QCLOUD_ERR_FAILURE;
+    return IOT_MQTT_SubscribeSync(client, topic_name, &sub_params);
 }
 
 /**
@@ -266,7 +249,7 @@ int main(int argc, char **argv)
     LogHandleFunc func;
     func.log_malloc               = HAL_Malloc;
     func.log_free                 = HAL_Free;
-    func.log_get_current_time_str = HAL_Timer_current;
+    func.log_get_current_time_str = HAL_Timer_Current;
     func.log_printf               = HAL_Printf;
     func.log_handle               = NULL;
     utils_log_init(func, eLOG_DEBUG, 2048);

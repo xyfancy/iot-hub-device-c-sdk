@@ -368,6 +368,15 @@ int qcloud_iot_mqtt_resubscribe(QcloudIotClient *client);
  */
 bool qcloud_iot_mqtt_is_sub_ready(QcloudIotClient *client, const char *topic_filter);
 
+/**
+ * @brief Get usr data, usr should handle lock/unlock usrdata itself in callback and caller.
+ *
+ * @param[in,out] client pointer to mqtt client
+ * @param[in] topic_filter topic filter
+ * @return NULL or user data
+ */
+void *qcloud_iot_mqtt_get_subscribe_usr_data(QcloudIotClient *client, const char *topic_filter);
+
 /**************************************************************************************
  * yield
  **************************************************************************************/

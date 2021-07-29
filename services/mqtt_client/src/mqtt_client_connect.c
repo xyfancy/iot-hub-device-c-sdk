@@ -80,7 +80,7 @@ static int _mqtt_connect(QcloudIotClient *client)
 
     HAL_MutexLock(client->lock_generic);
     client->was_manually_disconnected = client->is_ping_outstanding = 0;
-    HAL_Timer_countdown(&client->ping_timer, client->options.keep_alive_interval);
+    HAL_Timer_Countdown(&client->ping_timer, client->options.keep_alive_interval);
     HAL_MutexUnlock(client->lock_generic);
     IOT_FUNC_EXIT_RC(rc);
 }
@@ -130,6 +130,10 @@ int qcloud_iot_mqtt_attempt_reconnect(QcloudIotClient *client)
 
     if (!get_client_conn_state(client)) {
         IOT_FUNC_EXIT_RC(rc);
+    }
+
+    if (!client->options.clean_session) {
+        IOT_FUNC_EXIT_RC(QCLOUD_RET_MQTT_RECONNECTED);
     }
 
     rc = qcloud_iot_mqtt_resubscribe(client);

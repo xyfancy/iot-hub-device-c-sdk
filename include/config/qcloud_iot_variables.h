@@ -37,10 +37,16 @@ extern "C" {
 // value to meet your requirement
 
 /**
- * @brief default MQTT/CoAP timeout value when connect/pub/sub (unit: ms)
+ * @brief default MQTT timeout value when connect/pub/sub (unit: ms)
  *
  */
 #define QCLOUD_IOT_MQTT_COMMAND_TIMEOUT (5 * 1000)
+
+/**
+ * @brief default MQTT timeout value when wait server ack
+ *
+ */
+#define QCLOUD_IOT_MQTT_WAIT_ACK_TIMEOUT (5 * 1000)
 
 /**
  * @brief default MQTT keep alive interval (unit: ms)
@@ -59,6 +65,12 @@ extern "C" {
  *
  */
 #define QCLOUD_IOT_MQTT_RX_BUF_LEN (2048)
+
+/**
+ * @brief default MQTT timeout value when yield
+ *
+ */
+#define QCLOUD_IOT_MQTT_YIELD_TIMEOUT (500)
 
 /**
  * @brief MAX MQTT reconnect interval (unit: ms)

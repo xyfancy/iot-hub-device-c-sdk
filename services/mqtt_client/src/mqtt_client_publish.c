@@ -55,7 +55,7 @@ static int _push_pub_info_to_list(QcloudIotClient *client, int packet_len, uint1
     repub_info->len       = packet_len;
     repub_info->packet_id = packet_id;
     memcpy(repub_info->buf, client->write_buf, packet_len);  // save the whole packet
-    HAL_Timer_countdown_ms(&repub_info->pub_start_time, client->command_timeout_ms);
+    HAL_Timer_CountdownMs(&repub_info->pub_start_time, client->command_timeout_ms);
 
     // push republish info to list
     *node = utils_list_push(list, repub_info);
@@ -391,7 +391,7 @@ void qcloud_iot_mqtt_check_pub_timeout(QcloudIotClient *client)
         }
 
         // check the request if timeout or not
-        if (HAL_Timer_remain(&repub_info->pub_start_time) > 0) {
+        if (HAL_Timer_Remain(&repub_info->pub_start_time) > 0) {
             continue;
         }
 

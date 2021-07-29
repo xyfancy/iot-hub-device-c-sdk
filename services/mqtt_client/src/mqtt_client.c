@@ -46,7 +46,7 @@
  */
 static uint16_t _get_random_start_packet_id(void)
 {
-    srand((unsigned)HAL_GetTimeMs());
+    srand(HAL_Timer_CurrentSec());
     return rand() % 65536 + 1;
 }
 
@@ -164,7 +164,7 @@ static int _mqtt_client_connect_option_init(QcloudIotClient *client, const MQTTI
     }
 
     cur_timesec =
-        (MAX_ACCESS_EXPIRE_TIMEOUT <= 0) ? 0x7fffffffL : (HAL_Timer_current_sec() + MAX_ACCESS_EXPIRE_TIMEOUT / 1000);
+        (MAX_ACCESS_EXPIRE_TIMEOUT <= 0) ? 0x7fffffffL : (HAL_Timer_CurrentSec() + MAX_ACCESS_EXPIRE_TIMEOUT / 1000);
     get_next_conn_id(client->conn_id);
     HAL_Snprintf(client->options.username, MAX_MQTT_CONNECT_USR_NAME_LEN, "%s;%s;%s;%ld", client->options.client_id,
                  QCLOUD_IOT_DEVICE_SDK_APPID, client->conn_id, cur_timesec);
@@ -495,6 +495,59 @@ bool IOT_MQTT_IsSubReady(void *client, const char *topic_filter)
 
     QcloudIotClient *mqtt_client = (QcloudIotClient *)client;
     return qcloud_iot_mqtt_is_sub_ready(mqtt_client, topic_filter);
+}
+
+/**
+ * @brief Get user data in subscribe.
+ *
+ * @param[in,out] client pointer to mqtt client
+ * @param[in] topic_filter topic filter to subscribe
+ * @return NULL or user data
+ */
+void *IOT_MQTT_GetSubUsrData(void *client, const char *topic_filter)
+{
+    POINTER_SANITY_CHECK(client, NULL);
+    STRING_PTR_SANITY_CHECK(topic_filter, NULL);
+
+    QcloudIotClient *mqtt_client = (QcloudIotClient *)client;
+    return qcloud_iot_mqtt_get_subscribe_usr_data(mqtt_client, topic_filter);
+}
+
+/**
+ * @brief Subscribe and wait sub ready.
+ *
+ * @param[in,out] client pointer to mqtt client
+ * @param[in] topic_filter topic filter to subscribe
+ * @param[in] params @see SubscribeParams
+ * @return @see IotReturnCode
+ */
+int IOT_MQTT_SubscribeSync(void *client, const char *topic_filter, const SubscribeParams *params)
+{
+    int rc;
+    int cnt_sub = QCLOUD_IOT_MQTT_WAIT_ACK_TIMEOUT / QCLOUD_IOT_MQTT_YIELD_TIMEOUT;
+
+    if (IOT_MQTT_IsSubReady(client, topic_filter)) {
+        // if already sub, free the user data
+        if (params->user_data_free) {
+            params->user_data_free(params->user_data);
+        }
+        return QCLOUD_RET_SUCCESS;
+    }
+
+    rc = IOT_MQTT_Subscribe(client, topic_filter, params);
+    if (rc < 0) {
+        Log_e("topic subscribe failed: %d, cnt: %d", rc, cnt_sub);
+        return rc;
+    }
+
+    do {
+        /**
+         * @brief wait for subscription result
+         *
+         */
+        rc = IOT_MQTT_Yield(client, QCLOUD_IOT_MQTT_YIELD_TIMEOUT);
+    } while (cnt_sub-- >= 0 && !rc && !IOT_MQTT_IsSubReady(client, topic_filter));
+    return IOT_MQTT_IsSubReady(client, topic_filter) ? QCLOUD_RET_SUCCESS : QCLOUD_ERR_FAILURE;
 }
 
 /**

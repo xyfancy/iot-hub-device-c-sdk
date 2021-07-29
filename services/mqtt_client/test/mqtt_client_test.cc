@@ -36,7 +36,7 @@ void MqttClientTest::SetUp() {
   LogHandleFunc func;
   func.log_malloc = HAL_Malloc;
   func.log_free = HAL_Free;
-  func.log_get_current_time_str = HAL_Timer_current;
+  func.log_get_current_time_str = HAL_Timer_Current;
   func.log_printf = HAL_Printf;
   func.log_handle = NULL;
   utils_log_init(func, eLOG_DEBUG, 2048);
