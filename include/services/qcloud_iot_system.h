@@ -13,52 +13,51 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file qcloud_iot_hub.h
+ * @file qcloud_iot_system.h
  * @brief
  * @author fancyxu (fancyxu@tencent.com)
  * @version 1.0
- * @date 2021-05-28
+ * @date 2021-07-24
  *
  * @par Change Log:
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
- * <tr><td>2021-05-28 <td>1.0     <td>fancyxu   <td>first commit
- * <tr><td>2021-07-18 <td>1.1     <td>fancyxu   <td>support broadcast
+ * <tr><td>2021-07-24 <td>1.0     <td>fancyxu   <td>first commit
  * </table>
  */
 
-#ifndef IOT_HUB_DEVICE_C_SDK_INCLUDE_QCLOUD_IOT_HUB_H_
-#define IOT_HUB_DEVICE_C_SDK_INCLUDE_QCLOUD_IOT_HUB_H_
+#ifndef IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_QCLOUD_IOT_SYSTEM_H_
+#define IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_QCLOUD_IOT_SYSTEM_H_
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#include <stdint.h>
+
+#include "qcloud_iot_hub.h"
+
+#include "utils_json.h"
+
 /**
- * @brief IoT C-SDK version info
+ * @brief Get time from system topic
  *
+ * @param[in,out] client pointer to mqtt client
+ * @param[out] time time from system topic
+ * @return @see IotReturnCode
  */
-#define QCLOUD_IOT_DEVICE_SDK_VERSION "4.0.0"
+int IOT_Sys_GetTime(void *client, uint32_t *time);
 
-// common header file
-#include "qcloud_iot_debug.h"
-#include "qcloud_iot_device.h"
-#include "qcloud_iot_error.h"
-#include "qcloud_iot_params_check.h"
-#include "qcloud_iot_platform.h"
-
-// config header file
-#include "qcloud_iot_config.h"
-#include "qcloud_iot_host.h"
-#include "qcloud_iot_variables.h"
-
-// service header file
-#include "qcloud_iot_mqtt_client.h"
-#include "qcloud_iot_broadcast.h"
-#include "qcloud_iot_system.h"
+/**
+ * @brief Get ntp time and set to system.
+ *
+ * @param[in,out] client pointer to mqtt client
+ * @return @see IotReturnCode
+ */
+int IOT_Sys_SyncNTPTime(void *client);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // IOT_HUB_DEVICE_C_SDK_INCLUDE_QCLOUD_IOT_HUB_H_
+#endif  // IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_QCLOUD_IOT_SYSTEM_H_

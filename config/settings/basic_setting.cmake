@@ -104,6 +104,9 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/services/mqtt_client)
 # 是否打开广播功能
 add_subdirectory(${PROJECT_SOURCE_DIR}/services/broadcast)
 
+# 是否使能获取iot后台时间功能
+add_subdirectory(${PROJECT_SOURCE_DIR}/services/system)
+
 # 是否打开RRPC功能
 #add_subdirectory()
 
@@ -111,9 +114,6 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/services/broadcast)
 #add_subdirectory()
 
 # 是否打开设备影子的总开关
-#add_subdirectory()
-
-# 是否使能获取iot后台时间功能
 #add_subdirectory()
 
 ## HTTP ONLY
