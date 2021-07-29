@@ -35,6 +35,12 @@ extern "C" {
 
 #include "qcloud_iot_platform.h"
 
+#define HAL_TIMESPEC_TO_TIMEVAL(ts, tv) \
+    {                                   \
+        tv.tv_sec  = ts.tv_sec;         \
+        tv.tv_usec = ts.tv_nsec / 1000; \
+    }
+
 /**
  * @brief Return if timer expired.
  *
@@ -44,8 +50,10 @@ extern "C" {
  */
 bool HAL_Timer_Expired(Timer *timer)
 {
-    struct timeval now, res;
-    gettimeofday(&now, NULL);
+    struct timeval  now, res;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    HAL_TIMESPEC_TO_TIMEVAL(ts, now);
     timersub(&timer->end_time, &now, &res);
     return res.tv_sec < 0 || (res.tv_sec == 0 && res.tv_usec <= 0);
 }
@@ -58,8 +66,10 @@ bool HAL_Timer_Expired(Timer *timer)
  */
 void HAL_Timer_CountdownMs(Timer *timer, unsigned int timeout_ms)
 {
-    struct timeval now;
-    gettimeofday(&now, NULL);
+    struct timeval  now;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    HAL_TIMESPEC_TO_TIMEVAL(ts, now);
     struct timeval interval = {timeout_ms / 1000, (timeout_ms % 1000) * 1000};
     timeradd(&now, &interval, &timer->end_time);
 }
@@ -72,8 +82,10 @@ void HAL_Timer_CountdownMs(Timer *timer, unsigned int timeout_ms)
  */
 void HAL_Timer_Countdown(Timer *timer, unsigned int timeout)
 {
-    struct timeval now;
-    gettimeofday(&now, NULL);
+    struct timeval  now;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    HAL_TIMESPEC_TO_TIMEVAL(ts, now);
     struct timeval interval = {timeout, 0};
     timeradd(&now, &interval, &timer->end_time);
 }
@@ -86,8 +98,10 @@ void HAL_Timer_Countdown(Timer *timer, unsigned int timeout)
  */
 uint32_t HAL_Timer_Remain(Timer *timer)
 {
-    struct timeval now, res;
-    gettimeofday(&now, NULL);
+    struct timeval  now, res;
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    HAL_TIMESPEC_TO_TIMEVAL(ts, now);
     timersub(&timer->end_time, &now, &res);
     return (res.tv_sec < 0) ? 0 : res.tv_sec * 1000 + res.tv_usec / 1000;
 }
@@ -148,11 +162,7 @@ int HAL_Timer_SetSystimeSec(uint32_t timestamp_sec)
     struct timeval stime;
     stime.tv_sec  = timestamp_sec;
     stime.tv_usec = 0;
-
-    if (0 != settimeofday(&stime, NULL)) {
-        return -1;
-    }
-    return 0;
+    return settimeofday(&stime, NULL);
 }
 
 /**
@@ -166,11 +176,7 @@ int HAL_Timer_SetSystimeMs(uint64_t timestamp_ms)
     struct timeval stime;
     stime.tv_sec  = (timestamp_ms / 1000);
     stime.tv_usec = ((timestamp_ms % 1000) * 1000);
-
-    if (0 != settimeofday(&stime, NULL)) {
-        return -1;
-    }
-    return 0;
+    return settimeofday(&stime, NULL);
 }
 
 #ifdef __cplusplus

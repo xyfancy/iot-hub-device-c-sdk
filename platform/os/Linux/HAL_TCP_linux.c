@@ -71,16 +71,47 @@ int HAL_TCP_Connect(const char *host, const char *port)
         return QCLOUD_ERR_TCP_UNKNOWN_HOST;
     }
 
-    for (cur = addr_list; cur != NULL; cur = cur->ai_next) {
+    for (cur = addr_list; cur; cur = cur->ai_next) {
         fd = (int)socket(cur->ai_family, cur->ai_socktype, cur->ai_protocol);
         if (fd < 0) {
             rc = QCLOUD_ERR_TCP_SOCKET_FAILED;
             continue;
         }
 
-        if (connect(fd, cur->ai_addr, cur->ai_addrlen) == 0) {
+        rc = fcntl(fd, F_SETFL, fcntl(fd, F_GETFL) | O_NONBLOCK);
+        if (rc) {
+            Log_e("set socket non block faliled %d", rc);
+            close(fd);
+            rc = QCLOUD_ERR_TCP_SOCKET_FAILED;
+            continue;
+        }
+
+        rc = connect(fd, cur->ai_addr, cur->ai_addrlen);
+        if (!rc) {
             rc = fd;
             break;
+        }
+
+        if (errno == EINPROGRESS) {
+            // IO select to wait for connect result
+            struct timeval timeout;
+            timeout.tv_sec  = QCLOUD_IOT_MQTT_COMMAND_TIMEOUT / 1000;
+            timeout.tv_usec = 0;
+
+            fd_set sets;
+            FD_ZERO(&sets);
+            FD_SET(fd, &sets);
+
+            rc = select(fd + 1, NULL, &sets, NULL, &timeout);
+            if (rc > 0) {
+                int       so_error;
+                socklen_t len = sizeof(so_error);
+                getsockopt(fd, SOL_SOCKET, SO_ERROR, &so_error, &len);
+                if (FD_ISSET(fd, &sets) && so_error == 0) {
+                    rc = fd;
+                    break;
+                }
+            }
         }
 
         close(fd);
