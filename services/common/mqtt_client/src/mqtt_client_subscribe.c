@@ -186,8 +186,9 @@ static int _add_sub_handle_to_array(QcloudIotClient *client, const SubTopicHandl
                 Log_w("Identical topic found: %s", sub_handle->topic_filter);
                 break;
             }
+        } else {
+            i_free = i_free == -1 ? i : i_free;
         }
-        i_free = i_free == -1 ? i : i_free;
     }
 
     if (-1 == i_free) {
