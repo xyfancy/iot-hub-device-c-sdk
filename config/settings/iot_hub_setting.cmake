@@ -46,7 +46,8 @@ include_directories(
 	${PROJECT_SOURCE_DIR}/include/
 	${PROJECT_SOURCE_DIR}/include/common
 	${PROJECT_SOURCE_DIR}/include/config
-	${PROJECT_SOURCE_DIR}/include/services
+	${PROJECT_SOURCE_DIR}/include/services/common
+	${PROJECT_SOURCE_DIR}/include/services/hub
 )
 
 # set output path
@@ -98,14 +99,14 @@ set(src_services CACHE INTERNAL "")
 set(inc_services CACHE INTERNAL "")
 
 # mqtt client (must include except dynamic register)
-add_subdirectory(${PROJECT_SOURCE_DIR}/services/mqtt_client)
+add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/mqtt_client)
 
 ## MQTT ONLY
 # 是否打开广播功能
-add_subdirectory(${PROJECT_SOURCE_DIR}/services/broadcast)
+add_subdirectory(${PROJECT_SOURCE_DIR}/services/hub/broadcast)
 
 # 是否使能获取iot后台时间功能
-add_subdirectory(${PROJECT_SOURCE_DIR}/services/system)
+add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/system)
 
 # 是否打开RRPC功能
 #add_subdirectory()

@@ -1,4 +1,4 @@
-#rm -rf build
+rm -rf build
 git submodule init
 git submodule update
 mkdir -p build

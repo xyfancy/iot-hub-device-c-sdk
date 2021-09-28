@@ -13,36 +13,50 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file test_broadcast.cc
+ * @file qcloud_iot_common.h
  * @brief
  * @author fancyxu (fancyxu@tencent.com)
  * @version 1.0
- * @date 2021-07-18
+ * @date 2021-08-23
  *
  * @par Change Log:
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
- * <tr><td>2021-07-18 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-08-23 <td>1.0     <td>fancyxu   <td>first commit
  * </table>
  */
 
-#include <iostream>
-#include <string>
+#ifndef IOT_HUB_DEVICE_C_SDK_INCLUDE_QCLOUD_IOT_COMMON_H_
+#define IOT_HUB_DEVICE_C_SDK_INCLUDE_QCLOUD_IOT_COMMON_H_
 
-#include "gtest/gtest.h"
-#include "mqtt_client_test.h"
-#include "qcloud_iot_hub.h"
-
-namespace mqtt_client_unittest {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
- * @brief Test system mqtt.
+ * @brief IoT C-SDK version info
  *
  */
-TEST_F(MqttClientTest, system_mqtt) {
-  uint32_t time_stamp = 0;
-  ASSERT_EQ(IOT_Sys_GetTime(client, &time_stamp), 0);
-  ASSERT_EQ(IOT_Sys_SyncNTPTime(client), 0);
-}
+#define QCLOUD_IOT_DEVICE_SDK_VERSION "4.0.0"
 
-}  // namespace mqtt_client_unittest
+// common header file
+#include "qcloud_iot_debug.h"
+#include "qcloud_iot_device.h"
+#include "qcloud_iot_error.h"
+#include "qcloud_iot_params_check.h"
+#include "qcloud_iot_platform.h"
+
+// config header file
+#include "qcloud_iot_config.h"
+#include "qcloud_iot_host.h"
+#include "qcloud_iot_variables.h"
+
+// service header file
+#include "qcloud_iot_mqtt_client.h"
+#include "qcloud_iot_system.h"
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  // IOT_HUB_DEVICE_C_SDK_INCLUDE_QCLOUD_IOT_COMMON_H_

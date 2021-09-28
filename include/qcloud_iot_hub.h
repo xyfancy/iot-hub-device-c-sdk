@@ -38,24 +38,10 @@ extern "C" {
  * @brief IoT C-SDK version info
  *
  */
-#define QCLOUD_IOT_DEVICE_SDK_VERSION "4.0.0"
-
-// common header file
-#include "qcloud_iot_debug.h"
-#include "qcloud_iot_device.h"
-#include "qcloud_iot_error.h"
-#include "qcloud_iot_params_check.h"
-#include "qcloud_iot_platform.h"
-
-// config header file
-#include "qcloud_iot_config.h"
-#include "qcloud_iot_host.h"
-#include "qcloud_iot_variables.h"
+#define QCLOUD_IOT_DEVICE_HUB_SDK_VERSION "4.0.0"
 
 // service header file
-#include "qcloud_iot_mqtt_client.h"
 #include "qcloud_iot_broadcast.h"
-#include "qcloud_iot_system.h"
 
 #ifdef __cplusplus
 }

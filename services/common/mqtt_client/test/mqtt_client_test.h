@@ -13,7 +13,7 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file test_broadcast.cc
+ * @file mqtt_client_test.h
  * @brief
  * @author fancyxu (fancyxu@tencent.com)
  * @version 1.0
@@ -26,36 +26,28 @@
  * </table>
  */
 
-#include <iostream>
-#include <string>
+#ifndef IOT_HUB_DEVICE_C_SDK_SERVICES_MQTT_CLIENT_TEST_MQTT_CLIENT_TEST_H_
+#define IOT_HUB_DEVICE_C_SDK_SERVICES_MQTT_CLIENT_TEST_MQTT_CLIENT_TEST_H_
 
 #include "gtest/gtest.h"
-#include "mqtt_client_test.h"
-#include "qcloud_iot_hub.h"
+#include "qcloud_iot_common.h"
 
 namespace mqtt_client_unittest {
 
 /**
- * @brief Callback when MQTT msg arrives @see OnMessageHandler
+ * @brief test fixture of mqtt client
  *
- * @param[in, out] client pointer to mqtt client
- * @param[in] message publish message from server
- * @param[in] usr_data user data of SubscribeParams, @see SubscribeParams
  */
-void on_broadcast_arrived_callback(void *client, const char *msg, int msg_len, void *usr_data) {
-  Log_i("Receive broadcast message:%.*s, usr data:%d", msg_len, STRING_PTR_PRINT_SANITY_CHECK(msg),
-        *(reinterpret_cast<int *>(usr_data)));
-  *(reinterpret_cast<int *>(usr_data)) += 1;
-}
+class MqttClientTest : public testing::Test {
+ protected:
+  void SetUp() override;
 
-/**
- * @brief Test broadcast.
- *
- */
-TEST_F(MqttClientTest, broadcast) {
-  int usr_data = 0;
-  ASSERT_EQ(IOT_Broadcast_Init(client, on_broadcast_arrived_callback, &usr_data), 0);
-  ASSERT_EQ(IOT_Broadcast_Deinit(client), 0);
-}
+  void TearDown() override;
+
+  void *client = NULL;
+  DeviceInfo device_info;
+};
 
 }  // namespace mqtt_client_unittest
+
+#endif  // IOT_HUB_DEVICE_C_SDK_SERVICES_MQTT_CLIENT_TEST_MQTT_CLIENT_TEST_H_

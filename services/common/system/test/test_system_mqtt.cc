@@ -13,51 +13,36 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file qcloud_iot_system.h
+ * @file test_broadcast.cc
  * @brief
  * @author fancyxu (fancyxu@tencent.com)
  * @version 1.0
- * @date 2021-07-24
+ * @date 2021-07-18
  *
  * @par Change Log:
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
- * <tr><td>2021-07-24 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-18 <td>1.0     <td>fancyxu   <td>first commit
  * </table>
  */
 
-#ifndef IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_QCLOUD_IOT_SYSTEM_H_
-#define IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_QCLOUD_IOT_SYSTEM_H_
+#include <iostream>
+#include <string>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "gtest/gtest.h"
+#include "mqtt_client_test.h"
+#include "qcloud_iot_common.h"
 
-#include <stdint.h>
-
-#include "qcloud_iot_hub.h"
-
-#include "utils_json.h"
+namespace mqtt_client_unittest {
 
 /**
- * @brief Get time from system topic
+ * @brief Test system mqtt.
  *
- * @param[in,out] client pointer to mqtt client
- * @param[out] time time from system topic
- * @return @see IotReturnCode
  */
-int IOT_Sys_GetTime(void *client, uint32_t *time);
-
-/**
- * @brief Get ntp time and set to system.
- *
- * @param[in,out] client pointer to mqtt client
- * @return @see IotReturnCode
- */
-int IOT_Sys_SyncNTPTime(void *client);
-
-#ifdef __cplusplus
+TEST_F(MqttClientTest, system_mqtt) {
+  uint32_t time_stamp = 0;
+  ASSERT_EQ(IOT_Sys_GetTime(client, &time_stamp), 0);
+  ASSERT_EQ(IOT_Sys_SyncNTPTime(client), 0);
 }
-#endif
 
-#endif  // IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_QCLOUD_IOT_SYSTEM_H_
+}  // namespace mqtt_client_unittest

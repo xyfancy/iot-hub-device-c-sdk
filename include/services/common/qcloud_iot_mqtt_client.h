@@ -29,8 +29,8 @@
  * </table>
  */
 
-#ifndef IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_QCLOUD_IOT_MQTT_CLIENT_H_
-#define IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_QCLOUD_IOT_MQTT_CLIENT_H_
+#ifndef IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_COMMON_QCLOUD_IOT_MQTT_CLIENT_H_
+#define IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_COMMON_QCLOUD_IOT_MQTT_CLIENT_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -40,7 +40,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-#include "qcloud_iot_hub.h"
+#include "qcloud_iot_common.h"
 
 /**
  * @brief Max size of a topic name
@@ -315,4 +315,4 @@ DeviceInfo *IOT_MQTT_GetDeviceInfo(void *client);
 }
 #endif
 
-#endif  // IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_QCLOUD_IOT_MQTT_CLIENT_H_
+#endif  // IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_COMMON_QCLOUD_IOT_MQTT_CLIENT_H_

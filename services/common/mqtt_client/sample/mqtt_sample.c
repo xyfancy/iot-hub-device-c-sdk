@@ -32,7 +32,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "qcloud_iot_hub.h"
+#include "qcloud_iot_common.h"
 
 #include "utils_log.h"
 

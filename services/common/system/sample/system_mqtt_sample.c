@@ -31,7 +31,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "qcloud_iot_hub.h"
+#include "qcloud_iot_common.h"
 
 #include "utils_log.h"
 
@@ -122,19 +122,6 @@ static void _setup_connect_init_params(MQTTInitParams *init_params, DeviceInfo *
     init_params->event_handle.context   = NULL;
 }
 
-/**
- * @brief Callback when MQTT msg arrives @see OnMessageHandler
- *
- * @param[in, out] client pointer to mqtt client
- * @param[in] message publish message from server
- * @param[in] usr_data user data of SubscribeParams, @see SubscribeParams
- */
-static void _on_broadcast_arrived_callback(void *client, const char *msg, int msg_len, void *usr_data)
-{
-    Log_i("Receive broadcast message:%.*s, usr data:%d", msg_len, STRING_PTR_PRINT_SANITY_CHECK(msg), *(int *)usr_data);
-    (*(int *)usr_data)++;
-}
-
 // ----------------------------------------------------------------------------
 // Main
 // ----------------------------------------------------------------------------
@@ -191,28 +178,21 @@ int main(int argc, char **argv)
         return QCLOUD_ERR_FAILURE;
     }
 
-    // subscribe normal topics and wait result
-    static int test_usr_data = 0;
+    uint32_t time_stamp = 0;
 
-    rc = IOT_Broadcast_Init(client, _on_broadcast_arrived_callback, &test_usr_data);
+    rc = IOT_Sys_GetTime(client, &time_stamp);
     if (rc) {
-        Log_e("Client Subscribe Topic Failed: %d", rc);
-        return rc;
+        Log_e("Get system time failed!, rc=%d", rc);
+    } else {
+        Log_d("Get system time success, time %d", time_stamp);
     }
 
-    do {
-        rc = IOT_MQTT_Yield(client, QCLOUD_IOT_MQTT_YIELD_TIMEOUT);
-        if (rc == QCLOUD_ERR_MQTT_ATTEMPTING_RECONNECT) {
-            HAL_SleepMs(1000);
-            continue;
-        } else if (rc != QCLOUD_RET_SUCCESS && rc != QCLOUD_RET_MQTT_RECONNECTED) {
-            Log_e("exit with error: %d", rc);
-            break;
-        }
-    } while (!sg_main_exit);
+    rc = IOT_Sys_SyncNTPTime(client);
+    if (rc) {
+        Log_e("Get system ntp time failed!, rc=%d", rc);
+    }
 
-    rc = IOT_Broadcast_Deinit(client);
-    rc |= IOT_MQTT_Destroy(&client);
+    rc = IOT_MQTT_Destroy(&client);
 
     utils_log_deinit();
     return rc;

@@ -41,7 +41,7 @@ extern "C" {
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "qcloud_iot_hub.h"
+#include "qcloud_iot_common.h"
 
 /**********************************************************************
  * QCloud IoT C-SDK Hardware Abstraction Layer

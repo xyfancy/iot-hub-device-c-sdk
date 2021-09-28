@@ -13,41 +13,51 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file mqtt_client_test.h
+ * @file qcloud_iot_system.h
  * @brief
  * @author fancyxu (fancyxu@tencent.com)
  * @version 1.0
- * @date 2021-07-18
+ * @date 2021-07-24
  *
  * @par Change Log:
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
- * <tr><td>2021-07-18 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-07-24 <td>1.0     <td>fancyxu   <td>first commit
  * </table>
  */
 
-#ifndef IOT_HUB_DEVICE_C_SDK_SERVICES_MQTT_CLIENT_TEST_MQTT_CLIENT_TEST_H_
-#define IOT_HUB_DEVICE_C_SDK_SERVICES_MQTT_CLIENT_TEST_MQTT_CLIENT_TEST_H_
+#ifndef IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_COMMON_QCLOUD_IOT_SYSTEM_H_
+#define IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_COMMON_QCLOUD_IOT_SYSTEM_H_
 
-#include "gtest/gtest.h"
-#include "qcloud_iot_hub.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-namespace mqtt_client_unittest {
+#include <stdint.h>
+
+#include "qcloud_iot_common.h"
+
+#include "utils_json.h"
 
 /**
- * @brief test fixture of mqtt client
+ * @brief Get time from system topic
  *
+ * @param[in,out] client pointer to mqtt client
+ * @param[out] time time from system topic
+ * @return @see IotReturnCode
  */
-class MqttClientTest : public testing::Test {
- protected:
-  void SetUp() override;
+int IOT_Sys_GetTime(void *client, uint32_t *time);
 
-  void TearDown() override;
+/**
+ * @brief Get ntp time and set to system.
+ *
+ * @param[in,out] client pointer to mqtt client
+ * @return @see IotReturnCode
+ */
+int IOT_Sys_SyncNTPTime(void *client);
 
-  void *client = NULL;
-  DeviceInfo device_info;
-};
+#ifdef __cplusplus
+}
+#endif
 
-}  // namespace mqtt_client_unittest
-
-#endif  // IOT_HUB_DEVICE_C_SDK_SERVICES_MQTT_CLIENT_TEST_MQTT_CLIENT_TEST_H_
+#endif  // IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_COMMON_QCLOUD_IOT_SYSTEM_H_

@@ -37,7 +37,7 @@ extern "C" {
 #include <stddef.h>
 #include <stdint.h>
 
-#include "qcloud_iot_hub.h"
+#include "qcloud_iot_common.h"
 
 #ifndef AUTH_WITH_NO_TLS
 #include "qcloud_iot_tls_client.h"
