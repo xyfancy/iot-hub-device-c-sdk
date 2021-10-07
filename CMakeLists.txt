@@ -8,4 +8,4 @@ cmake_minimum_required (VERSION 3.5)
 include(${PROJECT_SOURCE_DIR}/config/toolchains/linux_x86_gcc.cmake)
 
 # 工程配置
-include(${PROJECT_SOURCE_DIR}/config/settings/iot_hub_setting.cmake)
+include(${PROJECT_SOURCE_DIR}/config/settings/iot_explorer_setting.cmake)
