@@ -336,7 +336,7 @@ int qcloud_iot_mqtt_unsubscribe(QcloudIotClient *client, const char *topic_filte
 
     // remove from sub handle
     if (!_remove_sub_handle_from_array(client, topic_filter)) {
-        Log_e("subscription does not exists: %s", topic_filter);
+        Log_w("subscription does not exists: %s", topic_filter);
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_UNSUB_FAIL);
     }
 
