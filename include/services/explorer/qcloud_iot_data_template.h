@@ -211,4 +211,4 @@ int IOT_DataTemplate_ActionReply(void *client, char *buf, int buf_len, IotDataTe
 }
 #endif
 
-#endif  // IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_QCLOUD_IOT_DATA_TEMPLATE_H_
+#endif  // IOT_HUB_DEVICE_C_SDK_INCLUDE_SERVICES_EXPLORER_QCLOUD_IOT_DATA_TEMPLATE_H_
