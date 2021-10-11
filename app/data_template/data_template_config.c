@@ -140,13 +140,13 @@ static DataTemplateProperty sg_usr_property_position[TOTAL_USR_PROPERTY_STRUCT_P
 
 static void _init_data_template_property_position(void)
 {
-    sg_usr_property_position[USR_PROPERTY_POSITION_LONGITUDE].value.value_int = 0;
-    sg_usr_property_position[USR_PROPERTY_POSITION_LONGITUDE].key             = "longitude";
-    sg_usr_property_position[USR_PROPERTY_POSITION_LONGITUDE].type            = DATA_TEMPLATE_TYPE_INT;
+    sg_usr_property_position[USR_PROPERTY_POSITION_INDEX_LONGITUDE].value.value_int = 0;
+    sg_usr_property_position[USR_PROPERTY_POSITION_INDEX_LONGITUDE].key             = "longitude";
+    sg_usr_property_position[USR_PROPERTY_POSITION_INDEX_LONGITUDE].type            = DATA_TEMPLATE_TYPE_INT;
 
-    sg_usr_property_position[USR_PROPERTY_POSITION_LATITUDE].value.value_int = 0;
-    sg_usr_property_position[USR_PROPERTY_POSITION_LATITUDE].key             = "latitude";
-    sg_usr_property_position[USR_PROPERTY_POSITION_LATITUDE].type            = DATA_TEMPLATE_TYPE_INT;
+    sg_usr_property_position[USR_PROPERTY_POSITION_INDEX_LATITUDE].value.value_int = 0;
+    sg_usr_property_position[USR_PROPERTY_POSITION_INDEX_LATITUDE].key             = "latitude";
+    sg_usr_property_position[USR_PROPERTY_POSITION_INDEX_LATITUDE].type            = DATA_TEMPLATE_TYPE_INT;
 }
 
 static void _init_data_template_property(void)

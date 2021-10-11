@@ -121,8 +121,8 @@ typedef enum {
 } UsrPropertyIndex;
 
 typedef enum {
-    USR_PROPERTY_POSITION_LONGITUDE = 0,
-    USR_PROPERTY_POSITION_LATITUDE,
+    USR_PROPERTY_POSITION_INDEX_LONGITUDE = 0,
+    USR_PROPERTY_POSITION_INDEX_LATITUDE,
 } UsrPropertyPositionIndex;
 
 typedef enum {

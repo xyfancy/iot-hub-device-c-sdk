@@ -221,9 +221,11 @@ static void _usr_init(void)
     value.value_string = "light";
     usr_data_template_property_value_set(USR_PROPERTY_INDEX_NAME, value);
     value.value_int = 30;
-    usr_data_template_property_struct_value_set(USR_PROPERTY_INDEX_POSITION, USR_PROPERTY_POSITION_LONGITUDE, value);
+    usr_data_template_property_struct_value_set(USR_PROPERTY_INDEX_POSITION, USR_PROPERTY_POSITION_INDEX_LONGITUDE,
+                                                value);
     value.value_int = 30;
-    usr_data_template_property_struct_value_set(USR_PROPERTY_INDEX_POSITION, USR_PROPERTY_POSITION_LATITUDE, value);
+    usr_data_template_property_struct_value_set(USR_PROPERTY_INDEX_POSITION, USR_PROPERTY_POSITION_INDEX_LATITUDE,
+                                                value);
     value.value_string = "high";
     usr_data_template_property_value_set(USR_PROPERTY_INDEX_POWER, value);
 }
