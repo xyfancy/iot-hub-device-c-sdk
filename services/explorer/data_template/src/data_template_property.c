@@ -70,7 +70,7 @@ static void _parse_method_payload_and_callback(PropertyDownMethodType type, cons
             goto error;
         }
 
-        rc = utils_json_value_data_get(value_code, UTILS_JSON_VALUE_TYPE_UINT32, &code);
+        rc = utils_json_value_data_get(value_code, UTILS_JSON_VALUE_TYPE_INT32, &code);
         if (rc) {
             goto error;
         }
