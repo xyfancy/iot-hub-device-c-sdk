@@ -13,16 +13,16 @@
  * either express or implied. See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * @file data_template_common.c
+ * @file data_template_mqtt.c
  * @brief
  * @author fancyxu (fancyxu@tencent.com)
  * @version 1.0
- * @date 2021-09-27
+ * @date 2021-10-18
  *
  * @par Change Log:
  * <table>
  * <tr><th>Date       <th>Version <th>Author    <th>Description
- * <tr><td>2021-09-27 <td>1.0     <td>fancyxu   <td>first commit
+ * <tr><td>2021-10-18 <td>1.0     <td>fancyxu   <td>first commit
  * </table>
  */
 
