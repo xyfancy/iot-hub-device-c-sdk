@@ -128,7 +128,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/system)
 #add_subdirectory()
 
 # 是否使能OTA固件升级功能
-#add_subdirectory()
+add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/ota)
 
 # 是否使能资源管理功能
 #add_subdirectory()
