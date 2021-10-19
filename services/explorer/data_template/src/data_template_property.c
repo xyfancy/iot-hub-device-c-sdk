@@ -155,7 +155,7 @@ void data_template_property_message_handler(void *client, const MQTTMessage *mes
         return;
     }
 
-    for (i = PROPERTY_DOWN_METHOD_TYPE_CONTROL; i < PROPERTY_DOWN_METHOD_TYPE_CLEAR_CONTROL_REPLY; i++) {
+    for (i = PROPERTY_DOWN_METHOD_TYPE_CONTROL; i <= PROPERTY_DOWN_METHOD_TYPE_CLEAR_CONTROL_REPLY; i++) {
         if (!strncmp(method.value, property_down_method_str[i], method.value_len)) {
             _parse_method_payload_and_callback(i, message, &data_template_context->property_callback,
                                                data_template_context->usr_data);
