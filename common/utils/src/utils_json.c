@@ -156,7 +156,7 @@ static int _is_string_end_matched(char *str, int *offset)
  */
 static int _is_number_end_matched(char *str, int *offset)
 {
-    return (*str < '0' || *str > '9') && *str != '.' && *str != 'f';
+    return (*str < '0' || *str > '9') && *str != '.' && *str != 'f' && *str != '-';
 }
 
 /**
