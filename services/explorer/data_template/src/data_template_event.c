@@ -42,23 +42,22 @@ void data_template_event_message_handler(void *client, const MQTTMessage *messag
     int            rc, code = 0;
     UtilsJsonValue method, client_token, value_code;
 
-    Log_d("receive event message:%.*s", message->payload_len, message->payload);
+    Log_d("receive event message:%.*s", message->payload_len, message->payload_str);
 
-    rc = utils_json_value_get("method", strlen("method"), (char *)message->payload, message->payload_len, &method);
+    rc = utils_json_value_get("method", strlen("method"), message->payload_str, message->payload_len, &method);
     if (rc) {
         return;
     }
 
     if (!strncmp(method.value, "event_reply", method.value_len)) {
         if (data_template_context->event_callback.method_event_reply_callback) {
-            rc = utils_json_value_get("clientToken", strlen("clientToken"), (char *)message->payload,
-                                      message->payload_len, &client_token);
+            rc = utils_json_value_get("clientToken", strlen("clientToken"), message->payload_str, message->payload_len,
+                                      &client_token);
             if (rc) {
                 goto error;
             }
 
-            rc = utils_json_value_get("code", strlen("code"), (char *)message->payload, message->payload_len,
-                                      &value_code);
+            rc = utils_json_value_get("code", strlen("code"), message->payload_str, message->payload_len, &value_code);
             if (rc) {
                 goto error;
             }

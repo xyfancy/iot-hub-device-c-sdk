@@ -167,7 +167,7 @@ static void _on_message_callback(void *client, const MQTTMessage *message, void 
 
     Log_i("Receive Message With topicName:%.*s, payload:%.*s", message->topic_len,
           STRING_PTR_PRINT_SANITY_CHECK(message->topic_name), message->payload_len,
-          STRING_PTR_PRINT_SANITY_CHECK((char *)message->payload));
+          STRING_PTR_PRINT_SANITY_CHECK(message->payload_str));
 }
 
 /**

@@ -50,11 +50,10 @@ static void _broadcast_message_cb(void *client, const MQTTMessage *message, void
 
     Log_d("topic=%.*s", message->topic_len, STRING_PTR_PRINT_SANITY_CHECK(message->topic_name));
     Log_i("len=%u, topic_msg=%.*s", message->payload_len, message->payload_len,
-          STRING_PTR_PRINT_SANITY_CHECK((char *)message->payload));
+          STRING_PTR_PRINT_SANITY_CHECK(message->payload_str));
 
     if (broadcast_context->callback) {
-        broadcast_context->callback(client, (const char *)message->payload, message->payload_len,
-                                    broadcast_context->usr_data);
+        broadcast_context->callback(client, message->payload_str, message->payload_len, broadcast_context->usr_data);
     }
 }
 

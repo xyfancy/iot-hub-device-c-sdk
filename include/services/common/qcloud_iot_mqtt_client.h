@@ -138,14 +138,17 @@ typedef enum {
  *
  */
 typedef struct {
-    QoS      qos;          // MQTT QoS level
-    uint8_t  retain;       // RETAIN flag
-    uint8_t  dup;          // DUP flag
-    uint16_t packet_id;    // MQTT Id
-    char *   topic_name;   // MQTT topic
-    int      topic_len;    // topic length
-    uint8_t *payload;      // MQTT msg payload
-    int      payload_len;  // MQTT length of msg payload
+    QoS      qos;         // MQTT QoS level
+    uint8_t  retain;      // RETAIN flag
+    uint8_t  dup;         // DUP flag
+    uint16_t packet_id;   // MQTT Id
+    char *   topic_name;  // MQTT topic
+    int      topic_len;   // topic length
+    union {
+        uint8_t *payload;      // MQTT msg payload
+        char *   payload_str;  // MQTT msg payload string
+    };
+    int payload_len;  // MQTT length of msg payload
 } MQTTMessage;
 
 /**

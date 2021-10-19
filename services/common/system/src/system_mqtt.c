@@ -56,10 +56,10 @@ static void _system_mqtt_message_callback(void *client, const MQTTMessage *messa
     SystemResultInfo *result = (SystemResultInfo *)usr_data;
     UtilsJsonValue    value;
 
-    Log_d("Receive system result message:%.*s", message->payload_len, message->payload);
+    Log_d("Receive system result message:%.*s", message->payload_len, message->payload_str);
 
     // get time
-    rc = utils_json_value_get("time", strlen("time"), (char *)message->payload, message->payload_len, &value);
+    rc = utils_json_value_get("time", strlen("time"), message->payload_str, message->payload_len, &value);
     if (rc) {
         return;
     }
@@ -69,7 +69,7 @@ static void _system_mqtt_message_callback(void *client, const MQTTMessage *messa
     }
 
     // get ntptime1
-    rc = utils_json_value_get("ntptime1", strlen("ntptime1"), (char *)message->payload, message->payload_len, &value);
+    rc = utils_json_value_get("ntptime1", strlen("ntptime1"), message->payload_str, message->payload_len, &value);
     if (rc) {
         return;
     }
@@ -79,7 +79,7 @@ static void _system_mqtt_message_callback(void *client, const MQTTMessage *messa
     }
 
     // get ntptime2
-    rc = utils_json_value_get("ntptime2", strlen("ntptime2"), (char *)message->payload, message->payload_len, &value);
+    rc = utils_json_value_get("ntptime2", strlen("ntptime2"), message->payload_str, message->payload_len, &value);
     if (rc) {
         return;
     }

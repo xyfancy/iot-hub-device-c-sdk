@@ -42,29 +42,28 @@ void data_template_action_message_handler(void *client, const MQTTMessage *messa
     int            rc = 0;
     UtilsJsonValue method, client_token, action_id, params;
 
-    Log_d("receive action message:%.*s", message->payload_len, message->payload);
+    Log_d("receive action message:%.*s", message->payload_len, message->payload_str);
 
-    rc = utils_json_value_get("method", strlen("method"), (char *)message->payload, message->payload_len, &method);
+    rc = utils_json_value_get("method", strlen("method"), message->payload_str, message->payload_len, &method);
     if (rc) {
         return;
     }
 
     if (!strncmp(method.value, "action", method.value_len)) {
         if (data_template_context->action_callback.method_action_callback) {
-            rc = utils_json_value_get("clientToken", strlen("clientToken"), (char *)message->payload,
-                                      message->payload_len, &client_token);
+            rc = utils_json_value_get("clientToken", strlen("clientToken"), message->payload_str, message->payload_len,
+                                      &client_token);
             if (rc) {
                 goto error;
             }
 
-            rc = utils_json_value_get("actionId", strlen("actionId"), (char *)message->payload, message->payload_len,
+            rc = utils_json_value_get("actionId", strlen("actionId"), message->payload_str, message->payload_len,
                                       &action_id);
             if (rc) {
                 goto error;
             }
 
-            rc = utils_json_value_get("params", strlen("params"), (char *)message->payload, message->payload_len,
-                                      &params);
+            rc = utils_json_value_get("params", strlen("params"), message->payload_str, message->payload_len, &params);
             if (rc) {
                 goto error;
             }

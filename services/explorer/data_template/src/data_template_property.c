@@ -56,7 +56,7 @@ static void _parse_method_payload_and_callback(PropertyDownMethodType type, cons
     UtilsJsonValue client_token, value_code, params, reported, control;
 
     // get client token
-    rc = utils_json_value_get("clientToken", strlen("clientToken"), (char *)message->payload, message->payload_len,
+    rc = utils_json_value_get("clientToken", strlen("clientToken"), message->payload_str, message->payload_len,
                               &client_token);
     if (rc) {
         goto error;
@@ -65,7 +65,7 @@ static void _parse_method_payload_and_callback(PropertyDownMethodType type, cons
     // get code
     if (PROPERTY_DOWN_METHOD_TYPE_REPORT_REPLY == type || PROPERTY_DOWN_METHOD_TYPE_GET_STATUS_REPLY == type ||
         PROPERTY_DOWN_METHOD_TYPE_REPORT_INFO_REPLY == type || PROPERTY_DOWN_METHOD_TYPE_CLEAR_CONTROL_REPLY == type) {
-        rc = utils_json_value_get("code", strlen("code"), (char *)message->payload, message->payload_len, &value_code);
+        rc = utils_json_value_get("code", strlen("code"), message->payload_str, message->payload_len, &value_code);
         if (rc) {
             goto error;
         }
@@ -80,7 +80,7 @@ static void _parse_method_payload_and_callback(PropertyDownMethodType type, cons
     switch (type) {
         case PROPERTY_DOWN_METHOD_TYPE_CONTROL:
             if (callback->method_control_callback) {
-                rc = utils_json_value_get("params", strlen("params"), (char *)message->payload, message->payload_len,
+                rc = utils_json_value_get("params", strlen("params"), message->payload_str, message->payload_len,
                                           &params);
                 if (rc) {
                     goto error;
@@ -99,10 +99,10 @@ static void _parse_method_payload_and_callback(PropertyDownMethodType type, cons
                 reported.value_len = 0;
                 control.value      = NULL;
                 control.value_len  = 0;
-                utils_json_value_get("data.reported", strlen("data.reported"), (char *)message->payload,
+                utils_json_value_get("data.reported", strlen("data.reported"), message->payload_str,
                                      message->payload_len, &reported);
-                utils_json_value_get("data.control", strlen("data.control"), (char *)message->payload,
-                                     message->payload_len, &control);
+                utils_json_value_get("data.control", strlen("data.control"), message->payload_str, message->payload_len,
+                                     &control);
                 callback->method_get_status_reply_callback(client_token, code, reported, control, usr_data);
             }
             break;
@@ -148,9 +148,9 @@ void data_template_property_message_handler(void *client, const MQTTMessage *mes
     DataTemplateContext *data_template_context = (DataTemplateContext *)usr_data;
     UtilsJsonValue       method;
 
-    Log_d("receive property message:%.*s", message->payload_len, message->payload);
+    Log_d("receive property message:%.*s", message->payload_len, message->payload_str);
 
-    rc = utils_json_value_get("method", strlen("method"), (char *)message->payload, message->payload_len, &method);
+    rc = utils_json_value_get("method", strlen("method"), message->payload_str, message->payload_len, &method);
     if (rc) {
         return;
     }
