@@ -265,7 +265,7 @@ int IOT_OTA_ReportProgress(void *client, char *buf, int buf_len, IotOTAReportTyp
      */
     const char *ota_state[]   = {"downloading", "burning", "done", "fail", "fail", "fail", "fail", "fail"};
     int         result_code[] = {0, 0, 0, -1, -2, -3, -4, -5};
-    const char *result_msg[]  = {"", "", "", "timeout", "file not exit", "md5 not match", "auth fail", "upgrade fail"};
+    const char *result_msg[]  = {"", "", "", "timeout", "file not exit", "auth fail", "md5 not match", "upgrade fail"};
 
     int len;
     switch (report_type) {
@@ -279,8 +279,8 @@ int IOT_OTA_ReportProgress(void *client, char *buf, int buf_len, IotOTAReportTyp
         case IOT_OTA_REPORT_TYPE_UPGRADE_SUCCESS:
         case IOT_OTA_REPORT_TYPE_DOWNLOAD_TIMEOUT:
         case IOT_OTA_REPORT_TYPE_FILE_NOT_EXIST:
-        case IOT_OTA_REPORT_TYPE_MD5_NOT_MATCH:
         case IOT_OTA_REPORT_TYPE_AUTH_FAIL:
+        case IOT_OTA_REPORT_TYPE_MD5_NOT_MATCH:
         case IOT_OTA_REPORT_TYPE_UPGRADE_FAIL:
             len = HAL_Snprintf(buf, buf_len,
                                "{\"type\":\"report_progress\",\"report\":{\"progress\":{\"state\":\"%s\",\"result_"
