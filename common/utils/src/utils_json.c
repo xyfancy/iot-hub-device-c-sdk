@@ -502,7 +502,12 @@ int utils_json_value_get(const char *key, int key_len, const char *src, int src_
  */
 int utils_json_value_data_get(UtilsJsonValue value, UtilsJsonValueType type, void *data)
 {
-    char value_tmp[32];
+    char value_tmp[32] = {0};
+
+    if (value.value_len > sizeof(value_tmp)) {
+        return -1;
+    }
+
     strncpy(value_tmp, value.value, value.value_len);
 
     switch (type) {
@@ -521,6 +526,8 @@ int utils_json_value_data_get(UtilsJsonValue value, UtilsJsonValueType type, voi
         case UTILS_JSON_VALUE_TYPE_BOOLEAN:
             *(int *)data = strcmp(value_tmp, "false");
             return 0;
+        default:
+            break;
     }
     return -1;
 }
