@@ -522,7 +522,7 @@ bool qcloud_iot_mqtt_is_sub_ready(QcloudIotClient *client, const char *topic_fil
         }
     }
     HAL_MutexUnlock(client->lock_generic);
-    return false;
+    IOT_FUNC_EXIT_RC(false);
 }
 
 /**
@@ -545,5 +545,65 @@ void *qcloud_iot_mqtt_get_subscribe_usr_data(QcloudIotClient *client, const char
         }
     }
     HAL_MutexUnlock(client->lock_generic);
-    return NULL;
+    IOT_FUNC_EXIT_RC(NULL);
+}
+
+/**
+ * @brief Clear sub handle array.
+ *
+ * @param[in,out] client pointer to mqtt client
+ */
+void qcloud_iot_mqtt_sub_handle_array_clear(QcloudIotClient *client)
+{
+    IOT_FUNC_ENTRY;
+
+    for (int i = 0; i < MAX_MESSAGE_HANDLERS; ++i) {
+        /* notify this event to topic subscriber */
+        if (client->sub_handles[i].topic_filter && client->sub_handles[i].params.on_sub_event_handler) {
+            client->sub_handles[i].params.on_sub_event_handler(client, MQTT_EVENT_CLIENT_DESTROY,
+                                                               client->sub_handles[i].params.user_data);
+        }
+        _clear_sub_handle(&client->sub_handles[i]);
+    }
+
+    IOT_FUNC_EXIT;
+}
+
+/**
+ * @brief Clear suback wait list and clear sub handle.
+ *
+ * @param[in,out] client pointer to mqtt client
+ */
+void qcloud_iot_mqtt_suback_wait_list_clear(QcloudIotClient *client)
+{
+    IOT_FUNC_ENTRY;
+
+    void *node, *iter = NULL;
+    void *list = client->list_sub_wait_ack;
+
+    QcloudIotSubInfo *sub_info;
+
+    if (!utils_list_len_get(list)) {
+        return;
+    }
+
+    iter = utils_list_iterator_create(list, LIST_HEAD);
+    if (!iter) {
+        return;
+    }
+
+    while ((node = utils_list_iterator_next(iter))) {
+        sub_info = (QcloudIotSubInfo *)utils_list_get_val(node);
+        if (!sub_info) {
+            Log_e("node's value is invalid!");
+            utils_list_remove(list, node);
+            continue;
+        }
+        _clear_sub_handle(&sub_info->handler);
+        utils_list_remove(list, node);
+    }
+
+    utils_list_iterator_destroy(iter);
+
+    IOT_FUNC_EXIT;
 }

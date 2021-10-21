@@ -277,6 +277,8 @@ static void _qcloud_iot_mqtt_client_deinit(QcloudIotClient *client)
     HAL_Free(client->options.password);
     HAL_MutexDestroy(client->lock_generic);
     HAL_MutexDestroy(client->lock_write_buf);
+    qcloud_iot_mqtt_sub_handle_array_clear(client);
+    qcloud_iot_mqtt_suback_wait_list_clear(client);
     utils_list_destroy(client->list_pub_wait_ack);
     utils_list_destroy(client->list_sub_wait_ack);
     Log_i("release mqtt client resources");
@@ -346,26 +348,13 @@ int IOT_MQTT_Destroy(void **client)
 {
     POINTER_SANITY_CHECK(*client, QCLOUD_ERR_INVAL);
 
-    int rc, i;
-
     QcloudIotClient *mqtt_client = (QcloudIotClient *)(*client);
 
-    rc = qcloud_iot_mqtt_disconnect(mqtt_client);
-    // disconnect network stack by force
+    int rc = qcloud_iot_mqtt_disconnect(mqtt_client);
     if (rc) {
+        // disconnect network stack by force
         mqtt_client->network_stack.disconnect(&(mqtt_client->network_stack));
         set_client_conn_state(mqtt_client, NOTCONNECTED);
-    }
-
-    for (i = 0; i < MAX_MESSAGE_HANDLERS; ++i) {
-        /* notify this event to topic subscriber */
-        if (mqtt_client->sub_handles[i].topic_filter && mqtt_client->sub_handles[i].params.on_sub_event_handler) {
-            mqtt_client->sub_handles[i].params.on_sub_event_handler(mqtt_client, MQTT_EVENT_CLIENT_DESTROY,
-                                                                    mqtt_client->sub_handles[i].params.user_data);
-        }
-
-        HAL_Free((void *)mqtt_client->sub_handles[i].topic_filter);
-        mqtt_client->sub_handles[i].topic_filter = NULL;
     }
 
     _qcloud_iot_mqtt_client_deinit(mqtt_client);

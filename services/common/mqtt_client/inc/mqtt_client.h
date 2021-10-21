@@ -377,6 +377,20 @@ bool qcloud_iot_mqtt_is_sub_ready(QcloudIotClient *client, const char *topic_fil
  */
 void *qcloud_iot_mqtt_get_subscribe_usr_data(QcloudIotClient *client, const char *topic_filter);
 
+/**
+ * @brief Clear sub handle array.
+ *
+ * @param[in,out] client pointer to mqtt client
+ */
+void qcloud_iot_mqtt_sub_handle_array_clear(QcloudIotClient *client);
+
+/**
+ * @brief Clear suback wait list and clear sub handle.
+ *
+ * @param[in,out] client pointer to mqtt client
+ */
+void qcloud_iot_mqtt_suback_wait_list_clear(QcloudIotClient *client);
+
 /**************************************************************************************
  * yield
  **************************************************************************************/
