@@ -99,10 +99,13 @@ static void _parse_method_payload_and_callback(PropertyDownMethodType type, cons
                 reported.value_len = 0;
                 control.value      = NULL;
                 control.value_len  = 0;
-                utils_json_value_get("data.reported", strlen("data.reported"), message->payload_str,
-                                     message->payload_len, &reported);
-                utils_json_value_get("data.control", strlen("data.control"), message->payload_str, message->payload_len,
-                                     &control);
+                rc = utils_json_value_get("data.reported", strlen("data.reported"), message->payload_str,
+                                          message->payload_len, &reported);
+                rc &= utils_json_value_get("data.control", strlen("data.control"), message->payload_str,
+                                           message->payload_len, &control);
+                if (rc) {
+                    goto error;
+                }
                 callback->method_get_status_reply_callback(client_token, code, reported, control, usr_data);
             }
             break;
