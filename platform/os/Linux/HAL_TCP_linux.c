@@ -209,7 +209,8 @@ int HAL_TCP_Write(int fd, const uint8_t *buf, uint32_t len, uint32_t timeout_ms,
     }
 
     *written_len = (size_t)len_sent;
-    return len_sent > 0 ? QCLOUD_RET_SUCCESS : rc;
+    // We always know hom much should write.
+    return len_sent == len ? QCLOUD_RET_SUCCESS : rc;
 }
 
 /**
@@ -274,6 +275,6 @@ int HAL_TCP_Read(int fd, uint8_t *buf, uint32_t len, uint32_t timeout_ms, size_t
     if (rc == QCLOUD_ERR_TCP_READ_TIMEOUT && len_recv == 0) {
         rc = QCLOUD_ERR_TCP_NOTHING_TO_READ;
     }
-
-    return (len == len_recv) ? QCLOUD_RET_SUCCESS : rc;
+    // We always don't know hom much should read.
+    return (len_recv > 0) ? QCLOUD_RET_SUCCESS : rc;
 }

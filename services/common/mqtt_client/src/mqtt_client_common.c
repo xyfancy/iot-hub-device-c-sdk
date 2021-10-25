@@ -115,36 +115,16 @@ int send_mqtt_packet(QcloudIotClient *client, size_t length)
 {
     IOT_FUNC_ENTRY;
 
-    int    rc       = QCLOUD_RET_SUCCESS;
-    size_t sent_len = 0, sent = 0;
-    Timer  timer;
+    int rc = QCLOUD_RET_SUCCESS;
+
+    size_t sent_len = 0;
 
     if (length >= client->write_buf_size) {
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_BUF_TOO_SHORT);
     }
 
-    HAL_Timer_CountdownMs(&timer, client->command_timeout_ms);
-
-    while (sent < length && !HAL_Timer_Expired(&timer)) {
-        rc = client->network_stack.write(&(client->network_stack), &client->write_buf[sent], length,
-                                         HAL_Timer_Remain(&timer), &sent_len);
-        if (rc) {
-            // there was an error writing the data
-            break;
-        }
-        sent += sent_len;
-    }
-
-    if (sent == length) {
-        // record the fact that we have successfully sent the packet
-        IOT_FUNC_EXIT_RC(QCLOUD_RET_SUCCESS);
-    }
-
-    // network_stack.write return success but sent != length, check because timeout
-    if (rc == QCLOUD_RET_SUCCESS && HAL_Timer_Expired(&timer)) {
-        Log_e("send timer expired :%d!", HAL_Timer_Remain(&timer));
-        IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_REQUEST_TIMEOUT);
-    }
-
+    rc = client->network_stack.write(&(client->network_stack), client->write_buf, length, client->command_timeout_ms,
+                                     &sent_len);
+    rc = QCLOUD_ERR_TCP_WRITE_TIMEOUT == rc ? QCLOUD_ERR_MQTT_REQUEST_TIMEOUT : rc;
     IOT_FUNC_EXIT_RC(rc);
 }
