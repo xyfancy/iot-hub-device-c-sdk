@@ -231,7 +231,8 @@ static char _hb2hex(uint8_t hb)
  */
 static void _lower(char md5_lower[33], const char md5[33])
 {
-    for (int i = 0; i < 32; i++) {
+    int i = 0;
+    for (i = 0; i < 32; i++) {
         md5_lower[i] = md5[i];
         if (md5[i] >= 'A' && md5[i] <= 'F') {
             md5_lower[i] += ('a' - 'A');
@@ -304,6 +305,7 @@ void utils_md5_update(IotMd5Context *ctx, const uint8_t *input, size_t ilen)
  */
 void utils_md5_finish(IotMd5Context *ctx)
 {
+    int      i;
     uint32_t last, padn;
     uint32_t high, low;
     uint8_t  msglen[8];
@@ -327,7 +329,7 @@ void utils_md5_finish(IotMd5Context *ctx)
     IOT_MD5_PUT_UINT32_LE(ctx->state[2], output_tmp, 8);
     IOT_MD5_PUT_UINT32_LE(ctx->state[3], output_tmp, 12);
 
-    for (int i = 0; i < 16; ++i) {
+    for (i = 0; i < 16; ++i) {
         ctx->md5sum[i * 2]     = _hb2hex(output_tmp[i] >> 4);
         ctx->md5sum[i * 2 + 1] = _hb2hex(output_tmp[i]);
     }

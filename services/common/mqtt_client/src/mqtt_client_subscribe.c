@@ -556,8 +556,8 @@ void *qcloud_iot_mqtt_get_subscribe_usr_data(QcloudIotClient *client, const char
 void qcloud_iot_mqtt_sub_handle_array_clear(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
-
-    for (int i = 0; i < MAX_MESSAGE_HANDLERS; ++i) {
+    int i;
+    for (i = 0; i < MAX_MESSAGE_HANDLERS; ++i) {
         /* notify this event to topic subscriber */
         if (client->sub_handles[i].topic_filter && client->sub_handles[i].params.on_sub_event_handler) {
             client->sub_handles[i].params.on_sub_event_handler(client, MQTT_EVENT_CLIENT_DESTROY,
