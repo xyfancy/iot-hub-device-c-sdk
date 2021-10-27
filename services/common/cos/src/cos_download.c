@@ -180,9 +180,11 @@ void *IOT_COS_DownloadInit(IotCosDownloadParams *params)
     }
     return handle;
 exit:
-    HAL_Free(handle->http_request.header);
-    IOT_HTTP_Deinit(handle->http_client);
-    HAL_Free(handle);
+    if (handle) {
+        HAL_Free(handle->http_request.header);
+        IOT_HTTP_Deinit(handle->http_client);
+        HAL_Free(handle);
+    }
     return NULL;
 }
 

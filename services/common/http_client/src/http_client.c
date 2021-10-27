@@ -228,7 +228,7 @@ static int _http_client_send_request_content(IotHTTPClient *client, const IotHTT
     int   rc = 0, len, buf_len;
     char *buf;
 
-    buf_len = 32 + strlen(params->content_type);
+    buf_len = params->content_type ? 32 + strlen(params->content_type) : 32;
     buf     = HAL_Malloc(buf_len);
     if (!buf) {
         Log_e("http malloc request line failed %d", rc);
