@@ -59,7 +59,7 @@ int main(int argc, char **argv)
     signal(SIGINT, _main_exit);
 #endif
 
-    int rc;
+    int rc = 0;
 
     // init log level
     LogHandleFunc func;
