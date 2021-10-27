@@ -55,6 +55,8 @@ extern "C" {
 #include "qcloud_iot_mqtt_client.h"
 #include "qcloud_iot_system.h"
 #include "qcloud_iot_ota.h"
+#include "qcloud_iot_cos.h"
+#include "qcloud_iot_http_client.h"
 
 #ifdef __cplusplus
 }

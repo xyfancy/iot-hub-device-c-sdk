@@ -101,6 +101,12 @@ set(inc_services CACHE INTERNAL "")
 # mqtt client (must include except dynamic register)
 add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/mqtt_client)
 
+# http client
+add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/http_client)
+
+# cos
+add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/cos)
+
 ## MQTT ONLY
 
 # 是否使能获取iot后台时间功能

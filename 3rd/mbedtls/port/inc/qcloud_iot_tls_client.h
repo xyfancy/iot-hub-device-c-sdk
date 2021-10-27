@@ -33,7 +33,7 @@
 extern "C" {
 #endif
 
-#include "qcloud_iot_common.h"
+#include "qcloud_iot_platform.h"
 
 #ifndef MAX_SIZE_OF_CLIENT_ID
 #define MAX_SIZE_OF_CLIENT_ID (80)
