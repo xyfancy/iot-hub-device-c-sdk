@@ -33,6 +33,7 @@
 #include "gtest/gtest.h"
 #include "utils_base64.h"
 #include "utils_hmac.h"
+#include "utils_md5.h"
 #include "utils_sha1.h"
 
 namespace cryptology_unittest {
@@ -135,6 +136,44 @@ TEST(CryptologyTest, sha1) {
 
   utils_sha1(sha1_test_buf[0], 3, sha1sum);
   ASSERT_EQ(memcmp(sha1sum, sha1_test_sum[0], 20), 0);
+}
+
+/**
+ * @brief Test md5.
+ *
+ */
+TEST(CryptologyTest, md5) {
+  /*
+   * RFC 1321 test vectors
+   */
+  const uint8_t md5_test_buf[7][81] = {
+      {""},
+      {"a"},
+      {"abc"},
+      {"message digest"},
+      {"abcdefghijklmnopqrstuvwxyz"},
+      {"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"},
+      {"12345678901234567890123456789012345678901234567890123456789012345678901234567890"},
+  };
+
+  const size_t md5_test_buflen[7] = {0, 1, 3, 14, 26, 62, 80};
+
+  const char md5_test_sum[7][33] = {
+      {"D41D8CD98F00B204E9800998ECF8427E"}, {"0CC175B9C0F1B6A831C399E269772661"}, {"900150983CD24FB0D6963F7D28E17F72"},
+      {"F96B697D7CB7938D525A2F31AAF161D0"}, {"C3FCD3D76192E4007DFB496CCA67E13B"}, {"D174AB98D277D9F5A5611C2C9F419D9F"},
+      {"57EDF4A22BE3C955AC49DA2E2107B67A"},
+  };
+
+  /*
+   * Checkup routine
+   */
+  IotMd5Context md5_ctx;
+  for (int i = 0; i < 7; i++) {
+    utils_md5_reset(&md5_ctx);
+    utils_md5_update(&md5_ctx, md5_test_buf[i], md5_test_buflen[i]);
+    utils_md5_finish(&md5_ctx);
+    ASSERT_EQ(utils_md5_compare(&md5_ctx, md5_test_sum[i]), 0);
+  }
 }
 
 }  // namespace cryptology_unittest
