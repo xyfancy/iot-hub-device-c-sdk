@@ -36,23 +36,23 @@ else()
 endif()
 
 configure_file (
-  "${PROJECT_SOURCE_DIR}/config/settings/qcloud_iot_config.h.in"
-  "${PROJECT_SOURCE_DIR}/include/config/qcloud_iot_config.h" 
+  "${IOT_SDK_SOURCE_DIR}/config/settings/qcloud_iot_config.h.in"
+  "${IOT_SDK_SOURCE_DIR}/include/config/qcloud_iot_config.h" 
   @ONLY
 )
 
 # export include
 include_directories(
-	${PROJECT_SOURCE_DIR}/include/
-	${PROJECT_SOURCE_DIR}/include/common
-	${PROJECT_SOURCE_DIR}/include/config
-	${PROJECT_SOURCE_DIR}/include/services/common
-	${PROJECT_SOURCE_DIR}/include/services/hub
+	${IOT_SDK_SOURCE_DIR}/include/
+	${IOT_SDK_SOURCE_DIR}/include/common
+	${IOT_SDK_SOURCE_DIR}/include/config
+	${IOT_SDK_SOURCE_DIR}/include/services/common
+	${IOT_SDK_SOURCE_DIR}/include/services/hub
 )
 
 # set output path
-set(LIBRARY_OUTPUT_PATH    ${PROJECT_SOURCE_DIR}/output/libs)
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/output/bin)
+set(LIBRARY_OUTPUT_PATH    ${IOT_SDK_SOURCE_DIR}/output/libs)
+set(EXECUTABLE_OUTPUT_PATH ${IOT_SDK_SOURCE_DIR}/output/bin)
 
 # set link lib dir
 link_directories(${LIBRARY_OUTPUT_PATH})
@@ -67,7 +67,7 @@ endif()
 set(src_platform CACHE INTERNAL "")
 set(inc_platform CACHE INTERNAL "")
 
-add_subdirectory(${PROJECT_SOURCE_DIR}/platform)
+add_subdirectory(${IOT_SDK_SOURCE_DIR}/platform)
 
 # set include
 include_directories(${inc_platform})
@@ -80,13 +80,13 @@ set(src_common CACHE INTERNAL "")
 set(inc_common CACHE INTERNAL "")
 
 # mqtt packet
-add_subdirectory(${PROJECT_SOURCE_DIR}/common/mqtt_packet)
+add_subdirectory(${IOT_SDK_SOURCE_DIR}/common/mqtt_packet)
 
 # utils
-add_subdirectory(${PROJECT_SOURCE_DIR}/common/utils)
+add_subdirectory(${IOT_SDK_SOURCE_DIR}/common/utils)
 
 # cryptology
-add_subdirectory(${PROJECT_SOURCE_DIR}/common/cryptology)
+add_subdirectory(${IOT_SDK_SOURCE_DIR}/common/cryptology)
 
 # set include
 include_directories(${inc_common})
@@ -99,14 +99,14 @@ set(src_services CACHE INTERNAL "")
 set(inc_services CACHE INTERNAL "")
 
 # mqtt client (must include except dynamic register)
-add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/mqtt_client)
+add_subdirectory(${IOT_SDK_SOURCE_DIR}/services/common/mqtt_client)
 
 ## MQTT ONLY
 # 是否打开广播功能
-add_subdirectory(${PROJECT_SOURCE_DIR}/services/hub/broadcast)
+add_subdirectory(${IOT_SDK_SOURCE_DIR}/services/hub/broadcast)
 
 # 是否使能获取iot后台时间功能
-add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/system)
+add_subdirectory(${IOT_SDK_SOURCE_DIR}/services/common/system)
 
 # 是否打开RRPC功能
 #add_subdirectory()
@@ -128,7 +128,7 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/system)
 #add_subdirectory()
 
 # 是否使能OTA固件升级功能
-add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/ota)
+add_subdirectory(${IOT_SDK_SOURCE_DIR}/services/common/ota)
 
 # 是否使能资源管理功能
 #add_subdirectory()
@@ -147,15 +147,15 @@ add_library(iot_services STATIC ${src_services})
 # mbedtls
 if(${CONFIG_AUTH_MODE} STREQUAL  "KEY" )
 	include_directories(
-		${PROJECT_SOURCE_DIR}/3rd/mbedtls/mbedtls/include
-		${PROJECT_SOURCE_DIR}/3rd/mbedtls/port/inc
+		${IOT_SDK_SOURCE_DIR}/3rd/mbedtls/mbedtls/include
+		${IOT_SDK_SOURCE_DIR}/3rd/mbedtls/port/inc
 	)
 	add_definitions("-DMBEDTLS_CONFIG_FILE=\"qcloud_iot_tls_psk_config.h\"")
 endif()
 
 if(${CONFIG_AUTH_WITH_NOTLS} STREQUAL "OFF")
 	# libmbedtls.a
-	add_subdirectory(${PROJECT_SOURCE_DIR}/3rd/mbedtls)
+	add_subdirectory(${IOT_SDK_SOURCE_DIR}/3rd/mbedtls)
 	set(libsdk ${libsdk} mbedtls)
 endif()
 
@@ -175,21 +175,21 @@ endif()
 ###################### EXTRACT ####################################
 
 if(${CONFIG_EXTRACT_SRC} STREQUAL "ON")
-	file(COPY ${src_platform} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/src)
-	file(COPY ${inc_platform} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/inc/internal)
+	file(COPY ${src_platform} DESTINATION ${IOT_SDK_SOURCE_DIR}/output/sdk/src)
+	file(COPY ${inc_platform} DESTINATION ${IOT_SDK_SOURCE_DIR}/output/sdk/inc/internal)
 
-	file(COPY ${src_common} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/src)
-	file(COPY ${inc_common} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/inc/internal)
+	file(COPY ${src_common} DESTINATION ${IOT_SDK_SOURCE_DIR}/output/sdk/src)
+	file(COPY ${inc_common} DESTINATION ${IOT_SDK_SOURCE_DIR}/output/sdk/inc/internal)
 
-	file(COPY ${src_services} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/src)
-	file(COPY ${inc_services} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/inc/internal)
+	file(COPY ${src_services} DESTINATION ${IOT_SDK_SOURCE_DIR}/output/sdk/src)
+	file(COPY ${inc_services} DESTINATION ${IOT_SDK_SOURCE_DIR}/output/sdk/inc/internal)
 
 	file(GLOB inc_export
-		${PROJECT_SOURCE_DIR}/include/*.h
-		${PROJECT_SOURCE_DIR}/include/common/*.h
-		${PROJECT_SOURCE_DIR}/include/config/*.h
-		${PROJECT_SOURCE_DIR}/include/services/common/*.h
-		${PROJECT_SOURCE_DIR}/include/services/explorer/*.h
+		${IOT_SDK_SOURCE_DIR}/include/*.h
+		${IOT_SDK_SOURCE_DIR}/include/common/*.h
+		${IOT_SDK_SOURCE_DIR}/include/config/*.h
+		${IOT_SDK_SOURCE_DIR}/include/services/common/*.h
+		${IOT_SDK_SOURCE_DIR}/include/services/explorer/*.h
 	)
-	file(COPY ${inc_export} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/inc)
+	file(COPY ${inc_export} DESTINATION ${IOT_SDK_SOURCE_DIR}/output/sdk/inc)
 endif()

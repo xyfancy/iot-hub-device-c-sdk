@@ -12,7 +12,7 @@ set(LINK_FLAGS    "${LINK_FLAGS} -Wl,--gc-sections") # 编译选项
 
 if(${BUILD_TYPE} STREQUAL  "debug")
     set(CMAKE_BUILD_TYPE "Debug")
-    list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/config/gcovr")
+    list(APPEND CMAKE_MODULE_PATH "${IOT_SDK_SOURCE_DIR}/config/gcovr")
     include(code_coverage)
     append_coverage_compiler_flags()
 else()
