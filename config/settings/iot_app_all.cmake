@@ -6,7 +6,7 @@ set(CONFIG_IOT_TEST OFF)
 # 打开IOT DEBUG
 set(CONFIG_IOT_DEBUG OFF)
 
-# 代码抽取，ON表示根据配置抽取源码到ouput/qcloud_iot_c_sdk目录
+# 代码抽取，ON表示根据配置抽取源码到ouput/sdk目录
 set(CONFIG_EXTRACT_SRC ON)
 
 # 接入认证方式，使用证书认证：CERT；使用密钥认证：KEY
@@ -109,3 +109,25 @@ endif()
 ###################### APP ####################################
 add_subdirectory(${PROJECT_SOURCE_DIR}/app/data_template)
 add_subdirectory(${PROJECT_SOURCE_DIR}/app/ota)
+
+###################### EXTRACT ####################################
+
+if(${CONFIG_EXTRACT_SRC} STREQUAL "ON")
+	file(COPY ${src_platform} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/src)
+	file(COPY ${inc_platform} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/inc/internal)
+
+	file(COPY ${src_common} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/src)
+	file(COPY ${inc_common} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/inc/internal)
+
+	file(COPY ${src_services} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/src)
+	file(COPY ${inc_services} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/inc/internal)
+
+	file(GLOB inc_export
+		${PROJECT_SOURCE_DIR}/include/*.h
+		${PROJECT_SOURCE_DIR}/include/common/*.h
+		${PROJECT_SOURCE_DIR}/include/config/*.h
+		${PROJECT_SOURCE_DIR}/include/services/common/*.h
+		${PROJECT_SOURCE_DIR}/include/services/explorer/*.h
+	)
+	file(COPY ${inc_export} DESTINATION ${PROJECT_SOURCE_DIR}/output/sdk/inc)
+endif()

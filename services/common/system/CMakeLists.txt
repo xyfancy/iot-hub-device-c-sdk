@@ -1,8 +1,5 @@
 file(GLOB src_system_mqtt ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
-set(inc_system_mqtt ${CMAKE_CURRENT_SOURCE_DIR}/inc)
-
 set(src_services ${src_services} ${src_system_mqtt} PARENT_SCOPE)
-set(inc_services ${inc_services} ${inc_system_mqtt} PARENT_SCOPE)
 
 file(GLOB src_system_mqtt_sample ${CMAKE_CURRENT_SOURCE_DIR}/sample/system_mqtt_sample.c)
 add_executable(system_mqtt_sample ${src_system_mqtt_sample})

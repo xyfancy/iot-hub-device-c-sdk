@@ -1,8 +1,5 @@
 file(GLOB src_ota_mqtt ${CMAKE_CURRENT_SOURCE_DIR}/src/*.c)
-set(inc_ota_mqtt ${CMAKE_CURRENT_SOURCE_DIR}/inc)
-
 set(src_services ${src_services} ${src_ota_mqtt} PARENT_SCOPE)
-set(inc_services ${inc_services} ${inc_ota_mqtt} PARENT_SCOPE)
 
 file(GLOB src_ota_mqtt_sample ${CMAKE_CURRENT_SOURCE_DIR}/sample/ota_mqtt_sample.c)
 add_executable(ota_mqtt_sample ${src_ota_mqtt_sample})
