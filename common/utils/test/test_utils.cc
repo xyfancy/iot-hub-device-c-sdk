@@ -115,7 +115,7 @@ TEST(UtilsLogTest, log) {
   func.log_get_current_time_str = HAL_Timer_Current;
   func.log_printf = HAL_Printf;
   func.log_handle = NULL;
-  ASSERT_EQ(utils_log_init(func, eLOG_DEBUG, 2048), 0);
+  ASSERT_EQ(utils_log_init(func, LOG_LEVEL_DEBUG, 2048), 0);
   Log_d("Here is a debug level log test!");
   Log_i("Here is a info level log test!");
   Log_w("Here is a warning level log test!");

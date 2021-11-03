@@ -32,7 +32,7 @@ static const char *  LEVEL_STR[] = {"DIS", "ERR", "WRN", "INF", "DBG"};
 static LogHandleFunc sg_log_handle_func;
 static char *        sg_log_buffer;
 static int           sg_log_max_size;
-static LogLevel      sg_log_print_level = eLOG_DEBUG;
+static LogLevel      sg_log_print_level = LOG_LEVEL_DEBUG;
 
 /**
  * @brief Get file name form path.

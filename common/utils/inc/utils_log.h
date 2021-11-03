@@ -43,11 +43,11 @@ extern "C" {
  *
  */
 typedef enum {
-    eLOG_DISABLE = 0, /**< disable log print/upload */
-    eLOG_ERROR   = 1, /**< error log level */
-    eLOG_WARN    = 2, /**< warning log level */
-    eLOG_INFO    = 3, /**< info log level */
-    eLOG_DEBUG   = 4, /**< debug log level */
+    LOG_LEVEL_DISABLE = 0, /**< disable log print/upload */
+    LOG_LEVEL_ERROR   = 1, /**< error log level */
+    LOG_LEVEL_WARN    = 2, /**< warning log level */
+    LOG_LEVEL_INFO    = 3, /**< info log level */
+    LOG_LEVEL_DEBUG   = 4, /**< debug log level */
 } LogLevel;
 
 /**
@@ -104,10 +104,10 @@ LogLevel utils_log_get_level(void);
 void utils_log_gen(const char *file, const char *func, const int line, const int level, const char *fmt, ...);
 
 // Simple APIs for log generation in different level
-#define Log_d(fmt, ...) utils_log_gen(__FILE__, __FUNCTION__, __LINE__, eLOG_DEBUG, fmt, ##__VA_ARGS__)
-#define Log_i(fmt, ...) utils_log_gen(__FILE__, __FUNCTION__, __LINE__, eLOG_INFO, fmt, ##__VA_ARGS__)
-#define Log_w(fmt, ...) utils_log_gen(__FILE__, __FUNCTION__, __LINE__, eLOG_WARN, fmt, ##__VA_ARGS__)
-#define Log_e(fmt, ...) utils_log_gen(__FILE__, __FUNCTION__, __LINE__, eLOG_ERROR, fmt, ##__VA_ARGS__)
+#define Log_d(fmt, ...) utils_log_gen(__FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_DEBUG, fmt, ##__VA_ARGS__)
+#define Log_i(fmt, ...) utils_log_gen(__FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_INFO, fmt, ##__VA_ARGS__)
+#define Log_w(fmt, ...) utils_log_gen(__FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_WARN, fmt, ##__VA_ARGS__)
+#define Log_e(fmt, ...) utils_log_gen(__FILE__, __FUNCTION__, __LINE__, LOG_LEVEL_ERROR, fmt, ##__VA_ARGS__)
 
 #ifdef __cplusplus
 }

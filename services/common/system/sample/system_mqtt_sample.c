@@ -155,7 +155,7 @@ int main(int argc, char **argv)
     func.log_get_current_time_str = HAL_Timer_Current;
     func.log_printf               = HAL_Printf;
     func.log_handle               = NULL;
-    utils_log_init(func, eLOG_DEBUG, 2048);
+    utils_log_init(func, LOG_LEVEL_DEBUG, 2048);
 
     DeviceInfo device_info;
 

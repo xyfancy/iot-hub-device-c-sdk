@@ -177,7 +177,7 @@ int main(int argc, char **argv)
         .log_printf               = HAL_Printf,
         .log_handle               = NULL,
     };
-    utils_log_init(func, eLOG_DEBUG, 2048);
+    utils_log_init(func, LOG_LEVEL_DEBUG, 2048);
 
     DeviceInfo device_info;
     rc = HAL_GetDevInfo((void *)&device_info);
