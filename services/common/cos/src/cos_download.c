@@ -213,16 +213,16 @@ int IOT_COS_DownloadFetch(void *handle, uint8_t *buf, uint32_t buf_len, uint32_t
     if (!download_handle->download_size) {
         rc = _cos_download_request(download_handle, buf_len);
         if (rc) {
-            Log_d("cod request failed %d", rc);
+            Log_e("cos request failed %d", rc);
             return rc;
         }
         return _cos_download_recv_data(download_handle, buf, buf_len, timeout_ms);
     }
 
-    if (download_handle->params.is_fragmentation && IOT_HTTP_IsRecvFinished(&download_handle->http_client)) {
+    if (download_handle->params.is_fragmentation && IOT_HTTP_IsRecvFinished(download_handle->http_client)) {
         rc = _cos_download_request(download_handle, buf_len);
         if (rc) {
-            Log_d("cos request failed %d", rc);
+            Log_e("cos request failed %d", rc);
             return rc;
         }
     }

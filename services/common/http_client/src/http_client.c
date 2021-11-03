@@ -324,10 +324,9 @@ static int _http_client_recv_content(IotHTTPClient *client, int offset, uint32_t
 
     // need recv length may much longger than buffer length
     int len = response->need_recv_len > buf_len - offset ? buf_len - offset : response->need_recv_len;
-
-    rc = _http_client_recv(client, buf + offset, len, timeout_ms);
+    rc      = _http_client_recv(client, buf + offset, len, timeout_ms);
     if (rc <= 0) {
-        return rc;
+        return offset ? offset : rc;
     }
     response->recv_len += rc;
     response->need_recv_len -= rc;
