@@ -47,7 +47,7 @@ extern "C" {
  */
 #define QCLOUD_IOT_MQTT_DIRECT_DOMAIN "iotcloud.tencentdevices.com"
 #define MQTT_SERVER_PORT_TLS          "8883"
-#define MQTT_SERVER_PORT_NOTLS        "1883"
+#define MQTT_SERVER_PORT_NO_TLS       "1883"
 
 /**
  * @brief Server domain for dynamic registering device.

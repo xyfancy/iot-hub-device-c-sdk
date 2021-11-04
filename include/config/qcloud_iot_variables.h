@@ -64,7 +64,7 @@ extern "C" {
  * @brief default MQTT Rx buffer size, MAX: 16*1024
  *
  */
-#define QCLOUD_IOT_MQTT_RX_BUF_LEN (2048)
+#define QCLOUD_IOT_MQTT_RX_BUF_LEN (4096)
 
 /**
  * @brief default MQTT timeout value when yield
