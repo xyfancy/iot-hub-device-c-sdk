@@ -45,9 +45,6 @@ void MqttClientTest::SetUp() {
 
   MQTTInitParams init_params = DEFAULT_MQTT_INIT_PARAMS;
   init_params.device_info = &device_info;
-#ifdef AUTH_WITH_NO_TLS
-  init_params.host = "localhost";
-#endif
   init_params.command_timeout = QCLOUD_IOT_MQTT_COMMAND_TIMEOUT;
   init_params.keep_alive_interval_ms = QCLOUD_IOT_MQTT_KEEP_ALIVE_INTERNAL;
   init_params.auto_connect_enable = 1;

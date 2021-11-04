@@ -96,12 +96,8 @@ error:
  */
 static void _mqtt_client_network_init(QcloudIotClient *client, const MQTTInitParams *params)
 {
-    if (params->host) {
-        strncpy(client->host_addr, params->host, HOST_STR_LENGTH);
-    } else {
-        HAL_Snprintf(client->host_addr, HOST_STR_LENGTH, "%s.%s", client->device_info->product_id,
-                     QCLOUD_IOT_MQTT_DIRECT_DOMAIN);
-    }
+    HAL_Snprintf(client->host_addr, HOST_STR_LENGTH, "%s.%s", client->device_info->product_id,
+                 params->host ? params->host : QCLOUD_IOT_MQTT_DIRECT_DOMAIN);
 
 #ifndef AUTH_WITH_NO_TLS
     // device param for TLS connection
@@ -128,7 +124,7 @@ static void _mqtt_client_network_init(QcloudIotClient *client, const MQTTInitPar
     client->network_stack.type                          = NETWORK_TLS;
 #else
     client->network_stack.host = client->host_addr;
-    client->network_stack.port = MQTT_SERVER_PORT_NOTLS;
+    client->network_stack.port = MQTT_SERVER_PORT_NO_TLS;
     client->network_stack.type = NETWORK_TCP;
 #endif
     network_init(&(client->network_stack));
