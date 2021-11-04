@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/msg.h>
 #include <unistd.h>
 
 #include "qcloud_iot_platform.h"
@@ -209,7 +210,7 @@ void HAL_SleepMs(uint32_t ms)
 #ifdef MULTITHREAD_ENABLED
 
 /**
- * @brief platform-dependant thread routine/entry function
+ * @brief platform-dependent thread routine/entry function
  *
  * @param[in,out] ptr
  * @return NULL
@@ -226,7 +227,7 @@ static void *_HAL_thread_func_wrapper_(void *ptr)
 }
 
 /**
- * @brief platform-dependant thread create function
+ * @brief platform-dependent thread create function
  *
  * @param[in,out] params params to create thread @see ThreadParams
  * @return @see IotReturnCode
@@ -246,9 +247,183 @@ int HAL_ThreadCreate(ThreadParams *params)
 }
 
 /**
- * @brief No use.
+ * @brief platform-dependent thread destroy function.
  *
  */
-void HAL_ThreadExit(void) {}
+void HAL_ThreadDestroy(void *thread_id) {}
+
+/**
+ * @brief platform-dependent semaphore create function.
+ *
+ * @return pointer to semaphore
+ */
+void *HAL_SemaphoreCreate(void)
+{
+    sem_t *sem = (sem_t *)malloc(sizeof(sem_t));
+    if (!sem) {
+        return NULL;
+    }
+
+    if (sem_init(sem, 0, 0)) {
+        free(sem);
+        return NULL;
+    }
+
+    return sem;
+}
+
+/**
+ * @brief platform-dependent semaphore destory function.
+ *
+ * @param[in] sem pointer to semaphore
+ */
+void HAL_SemaphoreDestroy(void *sem)
+{
+    sem_destroy((sem_t *)sem);
+    free(sem);
+}
+
+/**
+ * @brief platform-dependent semaphore post function.
+ *
+ * @param[in] sem pointer to semaphore
+ */
+void HAL_SemaphorePost(void *sem)
+{
+    sem_post((sem_t *)sem);
+}
+
+/**
+ * @brief platform-dependent semaphore wait function.
+ *
+ * @param[in] sem pointer to semaphore
+ * @param[in] timeout_ms wait timeout
+ * @return @see IotReturnCode
+ */
+int HAL_SemaphoreWait(void *sem, uint32_t timeout_ms)
+{
+#define PLATFORM_WAIT_INFINITE (~0)
+
+    if (PLATFORM_WAIT_INFINITE == timeout_ms) {
+        sem_wait(sem);
+        return QCLOUD_RET_SUCCESS;
+    } else {
+        struct timespec ts;
+        int             s;
+        /* Restart if interrupted by handler */
+        do {
+            if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
+                return QCLOUD_ERR_FAILURE;
+            }
+
+            s = 0;
+            ts.tv_nsec += (timeout_ms % 1000) * 1000000;
+            if (ts.tv_nsec >= 1000000000) {
+                ts.tv_nsec -= 1000000000;
+                s = 1;
+            }
+
+            ts.tv_sec += timeout_ms / 1000 + s;
+
+        } while (((s = sem_timedwait(sem, &ts)) != 0) && errno == EINTR);
+
+        return s ? QCLOUD_ERR_FAILURE : QCLOUD_RET_SUCCESS;
+    }
+#undef PLATFORM_WAIT_INFINITE
+}
+
+/**
+ * @brief Mail queue handle in linux.
+ *
+ */
+typedef struct {
+    int    msg_id;
+    size_t msg_size;
+} MailQueueHandle;
+
+/**
+ * @brief Mail buffer in linux.
+ *
+ */
+typedef struct {
+    long int type;
+    uint8_t  data[2048];
+} MailBuffer;
+
+/**
+ * @brief platform-dependent mail queue init function.
+ *
+ * @param[in] pool pool using in mail queue
+ * @param[in] mail_size mail size
+ * @param[in] mail_count mail count
+ * @return pointer to mail queue
+ */
+void *HAL_MailQueueInit(void *pool, size_t mail_size, int mail_count)
+{
+    MailQueueHandle *handle = HAL_Malloc(sizeof(MailQueueHandle));
+    if (!handle) {
+        return NULL;
+    }
+
+    handle->msg_id = msgget((key_t)0700, IPC_CREAT);
+    if (handle->msg_id == -1) {
+        HAL_Free(handle);
+        return NULL;
+    }
+
+    handle->msg_size = mail_size;
+    return handle;
+}
+
+/**
+ * @brief platform-dependent mail queue deinit function.
+ *
+ * @param[in] mail_q pointer to mail queue
+ */
+void HAL_MailQueueDeinit(void *mail_q)
+{
+    MailQueueHandle *handle = (MailQueueHandle *)mail_q;
+    msgctl(handle->msg_id, IPC_RMID, 0);
+    return;
+}
+
+/**
+ * @brief platform-dependent mail queue send function.
+ *
+ * @param[in] mail_q pointer to mail queue
+ * @param[in] buf data buf
+ * @param[in] size data size
+ * @return 0 for success
+ */
+int HAL_MailQueueSend(void *mail_q, void *buf, size_t size)
+{
+    MailQueueHandle *handle = (MailQueueHandle *)mail_q;
+    MailBuffer       data   = {
+        .type = 1,
+    };
+    memcpy(data.data, buf, size);
+    return msgsnd(handle->msg_id, &data, size, 0);
+}
+
+/**
+ * @brief platform-dependent mail queue send function.
+ *
+ * @param[in] mail_q pointer to mail queue
+ * @param[out] buf data buf
+ * @param[in] size data size
+ * @param[in] timeout_ms
+ * @return 0 for success
+ */
+int HAL_MailQueueRecv(void *mail_q, void *buf, size_t *size, int timeout_ms)
+{
+    MailQueueHandle *handle = (MailQueueHandle *)mail_q;
+    MailBuffer       data   = {
+        .type = 1,
+    };
+    *size  = handle->msg_size;
+    int rc = msgrcv(handle->msg_id, &data, handle->msg_size, 0, 0);
+    memcpy(buf, data.data, handle->msg_size);
+    return rc < 0;
+}
 
 #endif

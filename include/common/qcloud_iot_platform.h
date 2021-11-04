@@ -147,6 +147,7 @@ typedef struct {
     ThreadRunFunc thread_func; /**< thread entry function */
     void *        user_arg;    /**< thread entry arg */
     uint16_t      priority;    /**< thread priority */
+    void *        stack_base;  /**< thread stack base */
     uint32_t      stack_size;  /**< thread stack size */
 } ThreadParams;
 
@@ -159,10 +160,78 @@ typedef struct {
 int HAL_ThreadCreate(ThreadParams *params);
 
 /**
- * @brief No use.
+ * @brief platform-dependent thread destroy function.
  *
  */
-void HAL_ThreadExit(void);
+void HAL_ThreadDestroy(void *thread_id);
+
+/**
+ * @brief platform-dependent semaphore create function.
+ *
+ * @return pointer to semaphore
+ */
+void *HAL_SemaphoreCreate(void);
+
+/**
+ * @brief platform-dependent semaphore destory function.
+ *
+ * @param[in] sem pointer to semaphore
+ */
+void HAL_SemaphoreDestroy(void *sem);
+
+/**
+ * @brief platform-dependent semaphore post function.
+ *
+ * @param[in] sem pointer to semaphore
+ */
+void HAL_SemaphorePost(void *sem);
+
+/**
+ * @brief platform-dependent semaphore wait function.
+ *
+ * @param[in] sem pointer to semaphore
+ * @param[in] timeout_ms wait timeout
+ * @return @see IotReturnCode
+ */
+int HAL_SemaphoreWait(void *sem, uint32_t timeout_ms);
+
+/**
+ * @brief platform-dependent mail queue init function.
+ *
+ * @param[in] pool pool using in mail queue
+ * @param[in] mail_size mail size
+ * @param[in] mail_count mail count
+ * @return pointer to mail queue
+ */
+void *HAL_MailQueueInit(void *pool, size_t mail_size, int mail_count);
+
+/**
+ * @brief platform-dependent mail queue deinit function.
+ *
+ * @param[in] mail_q pointer to mail queue
+ */
+void HAL_MailQueueDeinit(void *mail_q);
+
+/**
+ * @brief platform-dependent mail queue send function.
+ *
+ * @param[in] mail_q pointer to mail queue
+ * @param[in] buf data buf
+ * @param[in] size data size
+ * @return 0 for success
+ */
+int HAL_MailQueueSend(void *mail_q, void *buf, size_t size);
+
+/**
+ * @brief platform-dependent mail queue send function.
+ *
+ * @param[in] mail_q pointer to mail queue
+ * @param[out] buf data buf
+ * @param[in] size data size
+ * @param[in] timeout_ms
+ * @return 0 for success
+ */
+int HAL_MailQueueRecv(void *mail_q, void *buf, size_t *size, int timeout_ms);
 
 #endif
 
