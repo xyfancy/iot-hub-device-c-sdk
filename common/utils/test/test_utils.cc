@@ -162,6 +162,12 @@ TEST(UtilsJsonTest, json) {
                                  &value),
             0);
   ASSERT_EQ(strncmp(value.value, "test1", value.value_len), 0);
+
+  char test_json_before_strip[] =
+      "{\\\"str_test\":\\\"test\\\",\\\"int_test\\\":100,\\\"float_test\\\":1.210f,\\\"bool_test\\\":true,"
+      "\\\"bool_false_test\\\":false,\\\"null_test\\\":null}";
+  ASSERT_EQ(utils_json_strip_transfer(test_json_before_strip, strlen(test_json_before_strip)), strlen(test_json));
+  ASSERT_EQ(strncmp(test_json_before_strip, test_json, strlen(test_json_before_strip)), 0);
 }
 
 }  // namespace utils_unittest

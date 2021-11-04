@@ -531,3 +531,25 @@ int utils_json_value_data_get(UtilsJsonValue value, UtilsJsonValueType type, voi
     }
     return -1;
 }
+
+/**
+ * @brief Remove '\\' in json string.
+ *
+ * @param[in,out] src string to transfer
+ * @param[in] src_len string len
+ * @return length after transfer
+ */
+int utils_json_strip_transfer(char *src, int src_len)
+{
+    char *src_tmp = src;
+    char *end     = src + src_len;
+
+    while (src_tmp < end) {
+        if (*src_tmp == '\\') {
+            memmove(src_tmp, src_tmp + 1, end - src_tmp);
+            end--;
+        }
+        src_tmp++;
+    }
+    return end - src;
+}

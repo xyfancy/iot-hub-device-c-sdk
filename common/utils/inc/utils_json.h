@@ -85,6 +85,15 @@ int utils_json_value_get(const char *key, int key_len, const char *src, int src_
  */
 int utils_json_value_data_get(UtilsJsonValue value, UtilsJsonValueType type, void *data);
 
+/**
+ * @brief Remove '\\' in json string.
+ *
+ * @param[in,out] src string to transfer
+ * @param[in] src_len string len
+ * @return length after transfer
+ */
+int utils_json_strip_transfer(char *src, int src_len);
+
 #ifdef __cplusplus
 }
 #endif
