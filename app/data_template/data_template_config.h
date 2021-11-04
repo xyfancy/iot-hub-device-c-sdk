@@ -195,6 +195,14 @@ void usr_data_template_property_struct_value_set(UsrPropertyIndex struct_index, 
 void usr_data_template_property_parse(UtilsJsonValue params);
 
 /**
+ * @brief Get property status.
+ *
+ * @param[in] index @see UsrPropertyIndex
+ * @return need_report
+ */
+int usr_data_template_property_status_get(UsrPropertyIndex index);
+
+/**
  * @brief Report all the properties needed report.
  *
  * @param[in,out] client pointer to mqtt client

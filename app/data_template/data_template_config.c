@@ -48,7 +48,12 @@ static int _set_property_value(DataTemplateProperty* property, UtilsJsonValue va
             return utils_json_value_data_get(value, UTILS_JSON_VALUE_TYPE_UINT32, &property->value.value_time);
         case DATA_TEMPLATE_TYPE_STRING:
         case DATA_TEMPLATE_TYPE_STRING_ENUM:
-            return strncpy(property->value.value_string, value.value, value.value_len) == NULL;
+            if (!property->value.value_string) {  // no need copy
+                return 0;
+            }
+            strncpy(property->value.value_string, value.value, value.value_len);
+            property->value.value_string[value.value_len] = '\0';
+            return 0;
         case DATA_TEMPLATE_TYPE_FLOAT:
             return utils_json_value_data_get(value, UTILS_JSON_VALUE_TYPE_FLOAT, &property->value.value_float);
         case DATA_TEMPLATE_TYPE_STRUCT:
@@ -85,6 +90,9 @@ static int _get_property_node(char* json_buf, int buf_len, const DataTemplatePro
             return HAL_Snprintf(json_buf, buf_len, "\"%s\":%u", property->key, property->value.value_time);
         case DATA_TEMPLATE_TYPE_STRING:
         case DATA_TEMPLATE_TYPE_STRING_ENUM:
+            if (!property->value.value_string) {
+                return 0;
+            }
             return HAL_Snprintf(json_buf, buf_len, "\"%s\":\"%s\"", property->key, property->value.value_string);
         case DATA_TEMPLATE_TYPE_FLOAT:
             return HAL_Snprintf(json_buf, buf_len, "\"%s\":%f", property->key, property->value.value_float);
@@ -305,6 +313,7 @@ void usr_data_template_property_value_set(UsrPropertyIndex index, DataTemplatePr
         strncpy(sg_usr_data_template_property[index].value.value_string, value.value_string,
                 strlen(value.value_string));
     }
+    sg_usr_data_template_property[index].value       = value;
     sg_usr_data_template_property[index].need_report = 1;
 }
 
@@ -352,6 +361,17 @@ void usr_data_template_property_parse(UtilsJsonValue params)
 }
 
 /**
+ * @brief Get property status.
+ *
+ * @param[in] index @see UsrPropertyIndex
+ * @return need_report
+ */
+int usr_data_template_property_status_get(UsrPropertyIndex index)
+{
+    return sg_usr_data_template_property[index].need_report;
+}
+
+/**
  * @brief Report all the properties needed report.
  *
  * @param[in,out] client pointer to mqtt client
@@ -361,7 +381,7 @@ void usr_data_template_property_parse(UtilsJsonValue params)
  */
 int usr_data_template_property_report(void* client, char* buf, int buf_len)
 {
-    char params[1024];
+    char params[512];
     memset(params, 0, sizeof(params));
     params[0]  = '{';
     int offset = 1;
@@ -369,7 +389,9 @@ int usr_data_template_property_report(void* client, char* buf, int buf_len)
         DataTemplateProperty* property = &sg_usr_data_template_property[i];
         if (property->need_report) {
             offset += _get_property_node(params + offset, sizeof(params) - offset, property);
-            params[offset++]      = ',';
+            if (offset) {
+                params[offset++] = ',';
+            }
             property->need_report = 0;
         }
     }
@@ -410,21 +432,23 @@ int usr_data_template_action_parse(UtilsJsonValue action_id, UtilsJsonValue para
 {
     DataTemplateProperty* property;
 
+    int input_property_count;
+
     for (int i = 0; i < TOTAL_USR_ACTION_COUNT; i++) {
         if (!strncmp(action_id.value, sg_usr_data_template_action[i].action_id, action_id.value_len)) {
-            property = sg_usr_data_template_action[i].input_struct.value_struct.property;
+            property             = sg_usr_data_template_action[i].input_struct.value_struct.property;
+            input_property_count = sg_usr_data_template_action[i].input_struct.value_struct.count;
 
             // 1. reset need report
-            for (int j = 0; j < TOTAL_USR_ACTION_LIGHT_BLINK_INPUT_PARAMS_COUNT; j++) {
+            for (int j = 0; j < input_property_count; j++) {
                 property[j].need_report = 0;
             }
 
             // 2. parse
-            _parse_property_array(params.value, params.value_len, property,
-                                  TOTAL_USR_ACTION_LIGHT_BLINK_INPUT_PARAMS_COUNT);
+            _parse_property_array(params.value, params.value_len, property, input_property_count);
 
             // 3. check all the input params is set
-            for (int j = 0; j < TOTAL_USR_ACTION_LIGHT_BLINK_INPUT_PARAMS_COUNT; j++) {
+            for (int j = 0; j < input_property_count; j++) {
                 if (!property[j].need_report) {
                     return QCLOUD_ERR_JSON_PARSE;
                 }
