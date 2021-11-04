@@ -29,6 +29,37 @@
 #include "utils_md5.h"
 
 /**
+ * @brief Binary half byte to hex char
+ *
+ * @param[in] hb half byte
+ * @return hex char(0~f)
+ */
+static char _hb2hex(uint8_t hb)
+{
+    hb = hb & 0xF;
+    return (char)(hb < 10 ? '0' + hb : hb - 10 + 'a');
+}
+
+/**
+ * @brief Lower md5sum.
+ *
+ * @param[out] md5_lower md5 sum lower
+ * @param[in] md5 md5 sum
+ */
+static void _lower(char md5_lower[33], const char md5[33])
+{
+    int i = 0;
+    for (i = 0; i < 32; i++) {
+        md5_lower[i] = md5[i];
+        if (md5[i] >= 'A' && md5[i] <= 'F') {
+            md5_lower[i] += ('a' - 'A');
+        }
+    }
+    md5_lower[32] = '\0';
+}
+
+#ifdef AUTH_WITH_NO_TLS
+/**
  * @brief 32-bit integer manipulation macros (little endian)
  *
  */
@@ -212,36 +243,6 @@ static void _utils_md5_process(IotMd5Context *ctx, const uint8_t data[64])
 }
 
 /**
- * @brief Binary half byte to hex char
- *
- * @param[in] hb half byte
- * @return hex char(0~f)
- */
-static char _hb2hex(uint8_t hb)
-{
-    hb = hb & 0xF;
-    return (char)(hb < 10 ? '0' + hb : hb - 10 + 'a');
-}
-
-/**
- * @brief Lower md5sum.
- *
- * @param[out] md5_lower md5 sum lower
- * @param[in] md5 md5 sum
- */
-static void _lower(char md5_lower[33], const char md5[33])
-{
-    int i = 0;
-    for (i = 0; i < 32; i++) {
-        md5_lower[i] = md5[i];
-        if (md5[i] >= 'A' && md5[i] <= 'F') {
-            md5_lower[i] += ('a' - 'A');
-        }
-    }
-    md5_lower[32] = '\0';
-}
-
-/**
  * @brief Reset MD5 context.
  *
  * @param[in,out] ctx MD5 context
@@ -349,3 +350,60 @@ int utils_md5_compare(IotMd5Context *ctx, const char md5sum[33])
     _lower(md5sum_lower, md5sum);
     return strncmp(ctx->md5sum, md5sum_lower, 32);
 }
+#else
+
+/**
+ * @brief Reset MD5 context.
+ *
+ * @param[in,out] ctx MD5 context
+ */
+void utils_md5_reset(IotMd5Context *ctx)
+{
+    memset(ctx, 0, sizeof(IotMd5Context));
+    mbedtls_md5_init(&ctx->ctx);
+    mbedtls_md5_starts(&ctx->ctx);
+}
+
+/**
+ * @brief MD5 update.
+ *
+ * @param[in,out] ctx MD5 context
+ * @param[in] input input data
+ * @param[in] ilen data length
+ */
+void utils_md5_update(IotMd5Context *ctx, const uint8_t *input, size_t ilen)
+{
+    mbedtls_md5_update(&ctx->ctx, input, ilen);
+}
+
+/**
+ * @brief Finish MD5 calculation, result will store in md5sum.
+ *
+ * @param[in,out] ctx MD5 context
+ */
+void utils_md5_finish(IotMd5Context *ctx)
+{
+    int     i;
+    uint8_t output_tmp[16];
+    mbedtls_md5_finish(&ctx->ctx, output_tmp);
+    for (i = 0; i < 16; ++i) {
+        ctx->md5sum[i * 2]     = _hb2hex(output_tmp[i] >> 4);
+        ctx->md5sum[i * 2 + 1] = _hb2hex(output_tmp[i]);
+    }
+    ctx->md5sum[32] = '\0';
+}
+
+/**
+ * @brief Compare md5sum with context.
+ *
+ * @param[in,out] ctx MD5 context
+ * @param[in] md5sum md5sum to compare
+ * @return 0 for the same
+ */
+int utils_md5_compare(IotMd5Context *ctx, const char md5sum[33])
+{
+    char md5sum_lower[33];
+    _lower(md5sum_lower, md5sum);
+    return strncmp(ctx->md5sum, md5sum_lower, 32);
+}
+#endif

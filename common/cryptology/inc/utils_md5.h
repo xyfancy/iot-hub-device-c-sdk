@@ -37,12 +37,22 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef AUTH_WITH_NO_TLS
+
 typedef struct {
     uint32_t total[2];   /**< number of bytes processed  */
     uint32_t state[4];   /**< intermediate digest state  */
     uint8_t  buffer[64]; /**< data block being processed */
     char     md5sum[33]; /**< md5sum result in hex string */
 } IotMd5Context;
+
+#else
+#include "mbedtls/md5.h"
+typedef struct {
+    mbedtls_md5_context ctx;
+    char                md5sum[33]; /**< md5sum result in hex string */
+} IotMd5Context;
+#endif
 
 /**
  * @brief Reset MD5 context.
