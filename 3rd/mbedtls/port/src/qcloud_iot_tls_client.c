@@ -382,7 +382,7 @@ int qcloud_iot_tls_client_read(uintptr_t handle, unsigned char *msg, size_t tota
         }
     } while (*read_len < total_len);
 
-    if (total_len == *read_len) {
+    if (*read_len > 0) {
         return QCLOUD_RET_SUCCESS;
     }
 
