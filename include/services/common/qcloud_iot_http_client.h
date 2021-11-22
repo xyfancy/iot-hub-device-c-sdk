@@ -42,6 +42,12 @@ extern "C" {
 #define HTTP_WRITE_TIMEOUT_MS 5000
 
 /**
+ * @brief HTTPs read tls timeout.
+ *
+ */
+#define HTTPS_READ_TIMEOUT_MS 2000
+
+/**
  * @brief Connect params set by user.
  *
  */
