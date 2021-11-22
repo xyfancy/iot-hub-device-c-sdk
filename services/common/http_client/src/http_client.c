@@ -251,12 +251,13 @@ static int _http_client_send_request_content(IotHTTPClient *client, const IotHTT
             goto exit;
         }
     }
-    HAL_Free(buf);
 
     rc = _http_client_send(client, "\r\n", 2);
     if (rc) {
         goto exit;
     }
+
+    HAL_Free(buf);
     return _http_client_send(client, (char *)params->content, params->content_length);
 exit:
     HAL_Free(buf);
