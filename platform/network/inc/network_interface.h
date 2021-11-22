@@ -47,13 +47,18 @@ extern "C" {
  * @brief Type of network interface.
  *
  */
-typedef enum { NETWORK_TCP = 0, NETWORK_UDP = 1, NETWORK_TLS = 2, NETWORK_DTLS = 3 } NetworkType;
+typedef enum {
+    IOT_NETWORK_TYPE_TCP = 0,
+    IOT_NETWORK_TYPE_UDP,
+    IOT_NETWORK_TYPE_TLS,
+    IOT_NETWORK_TYPE_DTLS
+} IotNetworkType;
 
 /**
  * @brief Define structure for network stack.
  *
  */
-typedef struct Network Network;
+typedef struct IotNetwork IotNetwork;
 
 /**
  * @brief Define structure for network stack.
@@ -61,18 +66,18 @@ typedef struct Network Network;
  * @note init/connect/read/write/disconnect/state
  *
  */
-struct Network {
-    int (*init)(Network *);
+struct IotNetwork {
+    int (*init)(IotNetwork *);
 
-    int (*connect)(Network *);
+    int (*connect)(IotNetwork *);
 
-    int (*read)(Network *, unsigned char *, size_t, uint32_t, size_t *);
+    int (*read)(IotNetwork *, unsigned char *, size_t, uint32_t, size_t *);
 
-    int (*write)(Network *, unsigned char *, size_t, uint32_t, size_t *);
+    int (*write)(IotNetwork *, unsigned char *, size_t, uint32_t, size_t *);
 
-    void (*disconnect)(Network *);
+    void (*disconnect)(IotNetwork *);
 
-    int (*is_connected)(Network *);
+    int (*is_connected)(IotNetwork *);
 
     union {
         int       fd;
@@ -83,9 +88,9 @@ struct Network {
     SSLConnectParams ssl_connect_params;
 #endif
 
-    const char *host; /**< server address */
-    const char *port; /**< server port */
-    NetworkType type;
+    const char *   host; /**< server address */
+    const char *   port; /**< server port */
+    IotNetworkType type;
 };
 
 /**
@@ -94,7 +99,7 @@ struct Network {
  * @param[in,out] network pointer to network
  * @return @see IotReturnCode
  */
-int network_init(Network *network);
+int qcloud_iot_network_init(IotNetwork *network);
 
 #ifdef __cplusplus
 }

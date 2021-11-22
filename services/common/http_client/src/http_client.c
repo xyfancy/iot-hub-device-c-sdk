@@ -59,7 +59,7 @@ typedef struct {
  */
 typedef struct {
     IotHTTPResponseData response;
-    Network             network;
+    IotNetwork          network;
 } IotHTTPClient;
 
 /**************************************************************************************
@@ -82,7 +82,7 @@ static int _http_client_connect(IotHTTPClient *client, const char *host, int por
     char port_str[6];
     HAL_Snprintf(port_str, 6, "%d", port);
 
-    client->network.type = NETWORK_TCP;
+    client->network.type = IOT_NETWORK_TYPE_TCP;
 #if !defined(AUTH_WITH_NO_TLS) && defined(AUTH_MODE_CERT)
     if (ca_crt) {
         // TODO: support https
@@ -91,7 +91,7 @@ static int _http_client_connect(IotHTTPClient *client, const char *host, int por
     client->network.host = host;
     client->network.port = port_str;
 
-    rc = network_init(&(client->network));
+    rc = qcloud_iot_network_init(&(client->network));
     return rc ? rc : client->network.connect(&(client->network));
 }
 

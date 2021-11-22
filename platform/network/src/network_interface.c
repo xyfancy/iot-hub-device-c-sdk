@@ -39,7 +39,7 @@ extern "C" {
  * @param[in,out] network pointer to network handle
  * @return always ok
  */
-int network_tcp_init(Network *network)
+static int _network_tcp_init(IotNetwork *network)
 {
     return QCLOUD_RET_SUCCESS;
 }
@@ -50,7 +50,7 @@ int network_tcp_init(Network *network)
  * @param[in,out] network pointer to network handle
  * @return @see IotReturnCode
  */
-int network_tcp_connect(Network *network)
+static int _network_tcp_connect(IotNetwork *network)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
 
@@ -82,7 +82,8 @@ int network_tcp_connect(Network *network)
  * @param[out] read_len read data len
  * @return @see IotReturnCode
  */
-int network_tcp_read(Network *network, unsigned char *data, size_t datalen, uint32_t timeout_ms, size_t *read_len)
+static int _network_tcp_read(IotNetwork *network, unsigned char *data, size_t datalen, uint32_t timeout_ms,
+                             size_t *read_len)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
 
@@ -99,7 +100,8 @@ int network_tcp_read(Network *network, unsigned char *data, size_t datalen, uint
  * @param[out] written_len len of written data
  * @return @see IotReturnCode
  */
-int network_tcp_write(Network *network, unsigned char *data, size_t datalen, uint32_t timeout_ms, size_t *written_len)
+static int _network_tcp_write(IotNetwork *network, unsigned char *data, size_t datalen, uint32_t timeout_ms,
+                              size_t *written_len)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
 
@@ -111,7 +113,7 @@ int network_tcp_write(Network *network, unsigned char *data, size_t datalen, uin
  *
  * @param[in,out] network pointer to network handle
  */
-void network_tcp_disconnect(Network *network)
+static void _network_tcp_disconnect(IotNetwork *network)
 {
     POINTER_SANITY_CHECK_RTN(network);
 
@@ -130,7 +132,7 @@ void network_tcp_disconnect(Network *network)
  * @param[in] network pointer to network
  * @return handle of network
  */
-static int _is_network_tcp_connected(Network *network)
+static int _is_network_tcp_connected(IotNetwork *network)
 {
     return network->fd > 0;
 }
@@ -143,7 +145,7 @@ static int _is_network_tcp_connected(Network *network)
  * @param[in,out] network pointer to network handle
  * @return always ok
  */
-int network_tls_init(Network *network)
+static int _network_tls_init(IotNetwork *network)
 {
     return QCLOUD_RET_SUCCESS;
 }
@@ -154,7 +156,7 @@ int network_tls_init(Network *network)
  * @param[in,out] network pointer to network handle
  * @return @see IotReturnCode
  */
-int network_tls_connect(Network *network)
+static int _network_tls_connect(IotNetwork *network)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
     network->handle = qcloud_iot_tls_client_connect(&network->ssl_connect_params, network->host, network->port);
@@ -171,7 +173,8 @@ int network_tls_connect(Network *network)
  * @param[out] read_len read data len
  * @return @see IotReturnCode
  */
-int network_tls_read(Network *network, unsigned char *data, size_t datalen, uint32_t timeout_ms, size_t *read_len)
+static int _network_tls_read(IotNetwork *network, unsigned char *data, size_t datalen, uint32_t timeout_ms,
+                             size_t *read_len)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
     return qcloud_iot_tls_client_read(network->handle, data, datalen, timeout_ms, read_len);
@@ -187,7 +190,8 @@ int network_tls_read(Network *network, unsigned char *data, size_t datalen, uint
  * @param[out] written_len len of written data
  * @return @see IotReturnCode
  */
-int network_tls_write(Network *network, unsigned char *data, size_t datalen, uint32_t timeout_ms, size_t *written_len)
+static int _network_tls_write(IotNetwork *network, unsigned char *data, size_t datalen, uint32_t timeout_ms,
+                              size_t *written_len)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
     return qcloud_iot_tls_client_write(network->handle, data, datalen, timeout_ms, written_len);
@@ -198,7 +202,7 @@ int network_tls_write(Network *network, unsigned char *data, size_t datalen, uin
  *
  * @param[in,out] network pointer to network handle
  */
-void network_tls_disconnect(Network *network)
+static void _network_tls_disconnect(IotNetwork *network)
 {
     POINTER_SANITY_CHECK_RTN(network);
 
@@ -212,7 +216,7 @@ void network_tls_disconnect(Network *network)
  * @param[in] network pointer to network
  * @return handle of network
  */
-static int _is_network_tls_connected(Network *network)
+static int _is_network_tls_connected(IotNetwork *network)
 {
     return network->handle;
 }
@@ -225,28 +229,28 @@ static int _is_network_tls_connected(Network *network)
  * @param[in,out] network pointer to network
  * @return @see IotReturnCode
  */
-int network_init(Network *network)
+int qcloud_iot_network_init(IotNetwork *network)
 {
     POINTER_SANITY_CHECK(network, QCLOUD_ERR_INVAL);
 
     switch (network->type) {
-        case NETWORK_TCP:
-            network->init         = network_tcp_init;
-            network->connect      = network_tcp_connect;
-            network->read         = network_tcp_read;
-            network->write        = network_tcp_write;
-            network->disconnect   = network_tcp_disconnect;
+        case IOT_NETWORK_TYPE_TCP:
+            network->init         = _network_tcp_init;
+            network->connect      = _network_tcp_connect;
+            network->read         = _network_tcp_read;
+            network->write        = _network_tcp_write;
+            network->disconnect   = _network_tcp_disconnect;
             network->is_connected = _is_network_tcp_connected;
             network->fd           = -1;
             break;
 
 #ifndef AUTH_WITH_NO_TLS
-        case NETWORK_TLS:
-            network->init         = network_tls_init;
-            network->connect      = network_tls_connect;
-            network->read         = network_tls_read;
-            network->write        = network_tls_write;
-            network->disconnect   = network_tls_disconnect;
+        case IOT_NETWORK_TYPE_TLS:
+            network->init         = _network_tls_init;
+            network->connect      = _network_tls_connect;
+            network->read         = _network_tls_read;
+            network->write        = _network_tls_write;
+            network->disconnect   = _network_tls_disconnect;
             network->is_connected = _is_network_tls_connected;
             network->handle       = 0;
             break;

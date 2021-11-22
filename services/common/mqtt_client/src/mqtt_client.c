@@ -121,13 +121,13 @@ static void _mqtt_client_network_init(QcloudIotClient *client, const MQTTInitPar
     client->network_stack.ssl_connect_params.timeout_ms = client->command_timeout_ms > QCLOUD_IOT_TLS_HANDSHAKE_TIMEOUT
                                                               ? client->command_timeout_ms
                                                               : QCLOUD_IOT_TLS_HANDSHAKE_TIMEOUT;
-    client->network_stack.type                          = NETWORK_TLS;
+    client->network_stack.type                          = IOT_NETWORK_TYPE_TLS;
 #else
     client->network_stack.host = client->host_addr;
     client->network_stack.port = MQTT_SERVER_PORT_NO_TLS;
-    client->network_stack.type = NETWORK_TCP;
+    client->network_stack.type = IOT_NETWORK_TYPE_TCP;
 #endif
-    network_init(&(client->network_stack));
+    qcloud_iot_network_init(&(client->network_stack));
 }
 
 /**

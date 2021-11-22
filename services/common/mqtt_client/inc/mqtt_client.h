@@ -138,8 +138,8 @@ typedef struct {
     void *list_pub_wait_ack; /**< puback waiting list */
     void *list_sub_wait_ack; /**< suback waiting list */
 
-    char    host_addr[HOST_STR_LENGTH]; /**< MQTT server host */
-    Network network_stack;              /**< MQTT network stack */
+    char       host_addr[HOST_STR_LENGTH]; /**< MQTT server host */
+    IotNetwork network_stack;              /**< MQTT network stack */
 
     MQTTPacketConnectOption options;                  /**< handle to connection parameters */
     char                    conn_id[MAX_CONN_ID_LEN]; /**< connect id */
