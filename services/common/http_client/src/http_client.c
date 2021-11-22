@@ -49,8 +49,9 @@ typedef struct {
     int      content_length;  /**< content length */
     uint8_t *content_buf;     /**< content buffer */
     int      content_buf_len; /**< content buffer length */
-    int      recv_len;
-    int      need_recv_len;
+    int      recv_len;        /**< already recv length */
+    int      need_recv_len;   /**< need recv length */
+    int      is_chunked;      /**< support chunked */
 } IotHTTPResponseData;
 
 /**
@@ -84,9 +85,11 @@ static int _http_client_connect(IotHTTPClient *client, const char *host, int por
 
     client->network.type = IOT_NETWORK_TYPE_TCP;
 #if !defined(AUTH_WITH_NO_TLS) && defined(AUTH_MODE_CERT)
-    if (ca_crt) {
-        // TODO: support https
-    }
+    client->network.ssl_connect_params.ca_crt     = ca_crt;
+    client->network.ssl_connect_params.ca_crt_len = strlen(ca_crt);
+    client->network.ssl_connect_params.cert_file  = NULL;
+    client->network.ssl_connect_params.key_file   = NULL;
+    client->network.ssl_connect_params.timeout_ms = HTTPS_READ_TIMEOUT_MS;
 #endif
     client->network.host = host;
     client->network.port = port_str;
@@ -248,14 +251,15 @@ static int _http_client_send_request_content(IotHTTPClient *client, const IotHTT
             goto exit;
         }
     }
+    HAL_Free(buf);
 
     rc = _http_client_send(client, "\r\n", 2);
     if (rc) {
         goto exit;
     }
-
     return _http_client_send(client, (char *)params->content, params->content_length);
 exit:
+    HAL_Free(buf);
     Log_e("send request content failed %d", rc);
     return rc;
 }
@@ -286,7 +290,7 @@ static int _http_client_send_request(IotHTTPClient *client, const IotHTTPRequest
             return rc;
         }
     }
-    if (!params->content) {  // no payload body
+    if (!params->content || !params->content_length) {  // no payload body
         return _http_client_send(client, "\r\n", 2);
     }
 
@@ -299,18 +303,81 @@ static int _http_client_send_request(IotHTTPClient *client, const IotHTTPRequest
  **************************************************************************************/
 
 /**
- * @brief Recv content data.
+ * @brief Recv data chunked.
+ *
+ * @param[in,out] client pointer to http client. @see IotHTTPClient
+ * @param[in] timeout_ms timeout for recv
+ * @return length of content data recv stored in content buf
+ */
+static int _http_client_chunked_recv(IotHTTPClient *client, uint32_t timeout_ms)
+{
+    uint8_t *buf     = client->response.content_buf;
+    int      buf_len = client->response.content_buf_len;
+
+    IotHTTPResponseData *response = &client->response;
+
+    char *crlf_pointer = NULL;
+    char *find_from    = (char *)buf;
+    int   rc = 0, read_size = 0;
+    int   read_size_flag = 1;
+
+    Timer read_timer;
+    HAL_Timer_CountdownMs(&read_timer, timeout_ms);
+
+    do {
+        while (1) {
+            // find \r\n from find_from, start with beginning
+            crlf_pointer = strstr(find_from, "\r\n");
+            if (crlf_pointer) {
+                break;
+            }
+
+            if (HAL_Timer_Expired(&read_timer)) {
+                return 0;
+            }
+
+            // try to read more to found \r\n
+            rc = _http_client_recv(client, buf + response->recv_len, buf_len - response->recv_len, 100);
+            if (rc < 0) {
+                return response->recv_len;
+            }
+            response->recv_len += rc;
+        }
+
+        // read size before \r\n
+        if (read_size_flag) {
+            *crlf_pointer = '\0';
+            read_size     = strtoul(find_from, NULL, 16);
+            response->recv_len -= crlf_pointer - find_from + 2;
+            if (!read_size) {  // last chunk
+                response->need_recv_len = 0;
+                return response->recv_len;
+            }
+            memmove(find_from, crlf_pointer + 2, buf + response->recv_len - (uint8_t *)find_from);
+            read_size_flag = false;
+            continue;
+        }
+
+        // remove /r/n and set find from
+        response->recv_len -= 2;
+        memmove(crlf_pointer, crlf_pointer + 2, buf + response->recv_len - (uint8_t *)crlf_pointer);
+        find_from += read_size;
+        read_size_flag = true;
+    } while (!HAL_Timer_Expired(&read_timer));
+    return 0;
+}
+
+/**
+ * @brief Recv data according content length.
  *
  * @param[in,out] client pointer to http client. @see IotHTTPClient
  * @param[in] offset offset of content buf
  * @param[in] timeout_ms timeout for recv
  * @return length of content data recv stored in content buf
  */
-static int _http_client_recv_content(IotHTTPClient *client, int offset, uint32_t timeout_ms)
+static int _http_client_content_length_recv(IotHTTPClient *client, int offset, uint32_t timeout_ms)
 {
-    IOT_FUNC_ENTRY;
-
-    int rc = 0;
+    int rc, len = 0;
 
     uint8_t *buf     = client->response.content_buf;
     int      buf_len = client->response.content_buf_len;
@@ -323,14 +390,28 @@ static int _http_client_recv_content(IotHTTPClient *client, int offset, uint32_t
     }
 
     // need recv length may much longger than buffer length
-    int len = response->need_recv_len > buf_len - offset ? buf_len - offset : response->need_recv_len;
-    rc      = _http_client_recv(client, buf + offset, len, timeout_ms);
+    len = response->need_recv_len > buf_len - offset ? buf_len - offset : response->need_recv_len;
+    rc  = _http_client_recv(client, buf + offset, len, timeout_ms);
     if (rc <= 0) {
         return offset ? offset : rc;
     }
     response->recv_len += rc;
     response->need_recv_len -= rc;
     return rc + offset;
+}
+
+/**
+ * @brief Recv content data.
+ *
+ * @param[in,out] client pointer to http client. @see IotHTTPClient
+ * @param[in] offset offset of content buf
+ * @param[in] timeout_ms timeout for recv
+ * @return length of content data recv stored in content buf
+ */
+static int _http_client_recv_content(IotHTTPClient *client, int offset, uint32_t timeout_ms)
+{
+    return client->response.is_chunked ? _http_client_chunked_recv(client, timeout_ms)
+                                       : _http_client_content_length_recv(client, offset, timeout_ms);
 }
 
 /**
@@ -361,7 +442,7 @@ static int _http_client_recv_response(IotHTTPClient *client, uint32_t timeout_ms
         // timeout 100ms for header less than buff len
         rc = _http_client_recv(client, (uint8_t *)buf + len, buf_len - len - 1, 100);
         if (rc < 0) {
-            Log_e("read failed");
+            Log_e("read failed, rc %d", rc);
             return rc;
         }
         len += rc;
@@ -386,18 +467,30 @@ static int _http_client_recv_response(IotHTTPClient *client, uint32_t timeout_ms
     }
 
     // 3. parse header
+    // content length
     content_length = strstr(buf, "Content-Length");
-    if (!content_length) {
-        Log_e("Could not parse header");
-        response->content_length = -1;
-        return QCLOUD_ERR_HTTP;
+    if (content_length) {
+        response->is_chunked     = 0;
+        response->content_length = atoi(content_length + strlen("Content-Length: "));
+        response->need_recv_len  = response->content_length - len;
+        goto recv_content;
     }
-    response->content_length = atoi(content_length + strlen("Content-Length: "));
 
-    // 4. remove data and receive body data
+    // chunked
+    if (strstr(buf, "Transfer-Encoding: chunked")) {
+        response->is_chunked    = 1;
+        response->need_recv_len = 1;  // means always need recv
+        goto recv_content;
+    }
+
+    Log_e("Could not parse header");
+    response->content_length = -1;
+    return QCLOUD_ERR_HTTP;
+
+// 4. remove data and receive body data
+recv_content:
     memmove(buf, body_end, len);
-    response->recv_len      = len;
-    response->need_recv_len = response->content_length - len;
+    response->recv_len = len;
     return _http_client_recv_content(client, len, HAL_Timer_Remain(&timer));
 }
 
