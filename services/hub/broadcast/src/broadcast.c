@@ -80,6 +80,10 @@ int IOT_Broadcast_Init(void *client, OnBroadcastArrivedCallback callback, void *
      */
     QcloudIotBroadcastContext *broadcast_context =
         (QcloudIotBroadcastContext *)HAL_Malloc(sizeof(QcloudIotBroadcastContext));
+    if (!broadcast_context) {
+        return QCLOUD_ERR_MALLOC;
+    }
+
     broadcast_context->callback = callback;
     broadcast_context->usr_data = usr_data;
 

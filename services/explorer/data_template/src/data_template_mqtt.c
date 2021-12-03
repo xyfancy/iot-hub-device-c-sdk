@@ -92,7 +92,7 @@ int data_template_topic_check_and_sub(void *client, DataTemplateType type, OnMes
 
     rc = IOT_MQTT_SubscribeSync(client, data_template_topic, &sub_params);
     if (rc) {
-        Log_d("subscribe topic %s failed!", data_template_topic);
+        Log_e("subscribe topic %s failed!", data_template_topic);
         HAL_Free(data_template_context);
     }
     return rc;

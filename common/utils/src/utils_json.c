@@ -533,6 +533,28 @@ int utils_json_value_data_get(UtilsJsonValue value, UtilsJsonValueType type, voi
 }
 
 /**
+ * @brief Return unsigned int value of key in json.
+ *
+ * @return 0 for success
+ */
+int utils_json_get_uint32(const char *key, int key_len, const char *src, int src_len, uint32_t *data)
+{
+    int            rc;
+    UtilsJsonValue tmp;
+
+    rc = utils_json_value_get(key, key_len, src, src_len, &tmp);
+    if (rc) {
+        return -1;
+    }
+
+    rc = utils_json_value_data_get(tmp, UTILS_JSON_VALUE_TYPE_UINT32, data);
+    if (rc) {
+        return -1;
+    }
+    return 0;
+}
+
+/**
  * @brief Remove '\\' in json string.
  *
  * @param[in,out] src string to transfer
