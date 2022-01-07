@@ -77,7 +77,6 @@ void HAL_MutexDestroy(void *mutex)
     if (!mutex) {
         return;
     }
-
 #ifdef MULTITHREAD_ENABLED
     int err_num;
     if (0 != (err_num = pthread_mutex_destroy((pthread_mutex_t *)mutex))) {
@@ -97,6 +96,9 @@ void HAL_MutexDestroy(void *mutex)
  */
 void HAL_MutexLock(void *mutex)
 {
+    if (!mutex) {
+        return;
+    }
 #ifdef MULTITHREAD_ENABLED
     int err_num;
     if (0 != (err_num = pthread_mutex_lock((pthread_mutex_t *)mutex))) {
@@ -115,6 +117,9 @@ void HAL_MutexLock(void *mutex)
  */
 int HAL_MutexTryLock(void *mutex)
 {
+    if (!mutex) {
+        return -1;
+    }
 #ifdef MULTITHREAD_ENABLED
     return pthread_mutex_trylock((pthread_mutex_t *)mutex);
 #else
@@ -129,6 +134,9 @@ int HAL_MutexTryLock(void *mutex)
  */
 void HAL_MutexUnlock(void *mutex)
 {
+    if (!mutex) {
+        return;
+    }
 #ifdef MULTITHREAD_ENABLED
     int err_num;
     if (0 != (err_num = pthread_mutex_unlock((pthread_mutex_t *)mutex))) {
