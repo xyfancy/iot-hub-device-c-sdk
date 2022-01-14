@@ -49,13 +49,36 @@
 void *HAL_MutexCreate(void)
 {
 #ifdef MULTITHREAD_ENABLED
-    int              err_num;
+    int err_num;
+
+    /**
+     * @brief
+     *
+     * @ref https://manpages.debian.org/jessie/glibc-doc/pthread_mutex_lock.3.en.html
+     *
+     * If the mutex is already locked by the calling thread, the behavior of pthread_mutex_lock depends on the
+     * kind of the mutex. If the mutex is of the ``fast'' kind, the calling thread is suspended until the mutex is
+     * unlocked, thus effectively causing the calling thread to deadlock. If the mutex is of the ``error checking''
+     * kind, pthread_mutex_lock returns immediately with the error code EDEADLK. If the mutex is of the ``recursive''
+     * kind, pthread_mutex_lock succeeds and returns immediately, recording the number of times the calling thread has
+     * locked the mutex. An equal number of pthread_mutex_unlock operations must be performed before the mutex returns
+     * to the unlocked state.
+     *
+     */
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
+
     pthread_mutex_t *mutex = (pthread_mutex_t *)HAL_Malloc(sizeof(pthread_mutex_t));
-    if (NULL == mutex) {
+    if (!mutex) {
         return NULL;
     }
 
-    if (0 != (err_num = pthread_mutex_init(mutex, NULL))) {
+    err_num = pthread_mutex_init(mutex, &attr);
+
+    pthread_mutexattr_destroy(&attr);
+
+    if (err_num) {
         HAL_Printf("%s: create mutex failed\n", __FUNCTION__);
         HAL_Free(mutex);
         return NULL;
@@ -78,8 +101,8 @@ void HAL_MutexDestroy(void *mutex)
         return;
     }
 #ifdef MULTITHREAD_ENABLED
-    int err_num;
-    if (0 != (err_num = pthread_mutex_destroy((pthread_mutex_t *)mutex))) {
+    int err_num = pthread_mutex_destroy((pthread_mutex_t *)mutex);
+    if (err_num) {
         HAL_Printf("%s: destroy mutex failed\n", __FUNCTION__);
     }
 
@@ -100,8 +123,8 @@ void HAL_MutexLock(void *mutex)
         return;
     }
 #ifdef MULTITHREAD_ENABLED
-    int err_num;
-    if (0 != (err_num = pthread_mutex_lock((pthread_mutex_t *)mutex))) {
+    int err_num = pthread_mutex_lock((pthread_mutex_t *)mutex);
+    if (err_num) {
         HAL_Printf("%s: lock mutex failed\n", __FUNCTION__);
     }
 #else

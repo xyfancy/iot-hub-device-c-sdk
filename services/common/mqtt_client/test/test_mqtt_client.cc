@@ -116,4 +116,40 @@ TEST_F(MqttClientTest, publish) {
   ASSERT_GE(IOT_MQTT_Publish(client, topic_name, &pub_params), 0);
 }
 
+/**
+ * @brief Test clean session.
+ *
+ */
+TEST_F(MqttClientTest, clean_session) {
+  IOT_MQTT_Destroy(&client);
+
+  HAL_SleepMs(5000);  // for iot hub can not connect twice in 5 s
+
+  SubscribeParams sub_params = DEFAULT_SUB_PARAMS;
+
+  char topic_name[MAX_SIZE_OF_CLOUD_TOPIC] = {0};
+  ASSERT_EQ(HAL_GetDevInfo(reinterpret_cast<void *>(&device_info)), 0);
+  HAL_Snprintf(topic_name, sizeof(topic_name), "%s/%s/data", device_info.product_id, device_info.device_name);
+
+  MQTTInitParams init_params = DEFAULT_MQTT_INIT_PARAMS;
+  init_params.device_info = &device_info;
+  init_params.clean_session = 0;
+
+  client = IOT_MQTT_Construct(&init_params);
+  ASSERT_NE(client, nullptr);
+  ASSERT_GE(IOT_MQTT_SubscribeSync(client, topic_name, &sub_params), 0);
+  IOT_MQTT_Destroy(&client);
+
+  HAL_SleepMs(5000);
+
+  init_params.clean_session = 0;
+  init_params.connect_when_construct = 0;
+  init_params.default_subscribe = 1;
+
+  client = IOT_MQTT_Construct(&init_params);
+  ASSERT_NE(client, nullptr);
+  ASSERT_GE(IOT_MQTT_SubscribeSync(client, topic_name, &sub_params), 0);
+  ASSERT_EQ(IOT_MQTT_Connect(client), 0);
+}
+
 }  // namespace mqtt_client_unittest

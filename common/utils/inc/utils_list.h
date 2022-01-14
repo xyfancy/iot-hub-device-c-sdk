@@ -46,6 +46,15 @@ typedef enum {
 } UtilsListDirection;
 
 /**
+ * @brief ListNode process result of OnNodeProcessHandle.
+ *
+ */
+typedef enum {
+    LIST_TRAVERSE_CONTINUE,
+    LIST_TRAVERSE_BREAK,
+} UtilsListResult;
+
+/**
  * @brief Utils list function.
  *
  */
@@ -58,6 +67,12 @@ typedef struct {
     void (*list_unlock)(void *lock);
     void (*list_lock_deinit)(void *lock);
 } UtilsListFunc;
+
+/**
+ * @brief Node process handle called by utils_list_process.
+ *
+ */
+typedef UtilsListResult (*OnNodeProcessHandle)(void *list, void *node, void *val, void *usr_data);
 
 /**
  * @brief Create list with max len, return NULL if fail.
@@ -101,14 +116,6 @@ void *utils_list_push(void *list, void *val);
 void *utils_list_pop(void *list);
 
 /**
- * @brief Get the value of node.
- *
- * @param[in] node
- * @return value of node
- */
-void *utils_list_get_val(void *node);
-
-/**
  * @brief Delete the node in list and release the resource.
  *
  * @param[in] list pointer to list
@@ -117,28 +124,14 @@ void *utils_list_get_val(void *node);
 void utils_list_remove(void *list, void *node);
 
 /**
- * @brief Create a new ListIterator and set the ListDirection and lock if success.
+ * @brief Process list using handle function.
  *
  * @param[in] list pointer to list
- * @param[in] direction direction to iterate
- * @return pointer to iterator, NULL for failed
+ * @param[in] direction direction to traverse
+ * @param[in] handle process function @see OnNodeProcessHandle
+ * @param[in,out] usr_data usr data to pass to OnNodeProcessHandle
  */
-void *utils_list_iterator_create(void *list, uint8_t direction);
-
-/**
- * @brief Return pointer to next node
- *
- * @param[in] iterator pointer to iterator
- * @return pointer to next node
- */
-void *utils_list_iterator_next(void *iterator);
-
-/**
- * @brief Release the ListIterator and unlock.
- *
- * @param[in] iterator pointer to iterator
- */
-void utils_list_iterator_destroy(void *iterator);
+void utils_list_process(void *list, uint8_t direction, OnNodeProcessHandle handle, void *usr_data);
 
 #ifdef __cplusplus
 }

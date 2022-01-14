@@ -75,7 +75,7 @@ TEST(CryptologyTest, hmac) {
   const uint8_t key[] = "0123456789123456";
   const char result[] = "614b650ffefff7862c1bc7fdd9de4e472a8184c4";
 
-  char buf[128];
+  char buf[128] = {0};
 
   ASSERT_EQ(utils_hmac_sha1(test_buf, strlen(test_buf), key, sizeof(key), buf), 0);
   ASSERT_EQ(memcmp(buf, result, sizeof(result)), 0);
