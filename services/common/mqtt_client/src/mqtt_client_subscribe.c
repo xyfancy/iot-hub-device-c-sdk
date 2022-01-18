@@ -50,7 +50,7 @@ static void _clear_sub_handle(SubTopicHandle *handler)
         handler->topic_filter = NULL;
     }
 
-    if (handler->params.user_data_free) {
+    if (handler->params.user_data && handler->params.user_data_free) {
         handler->params.user_data_free(handler->params.user_data);
         handler->params.user_data = NULL;
     }
