@@ -77,31 +77,39 @@ class UtilsListTest : public testing::Test {
  */
 TEST_F(UtilsListTest, list) {
   ASSERT_EQ(utils_list_push(self_list, reinterpret_cast<void *>(1)), nullptr);
-
   for (int i = 0; i < 10; i++) {
     ASSERT_EQ(utils_list_len_get(self_list), 10 - i);
-    ASSERT_EQ(*(int *)(utils_list_pop(self_list)), i);
+    int *val = reinterpret_cast<int *>(utils_list_pop(self_list));
+    ASSERT_EQ(*val, i);
+    HAL_Free(val);
   }
 }
 
 /**
- * @brief Test list iterator.
+ * @brief Test remove list node
+ *
+ * @param[in,out] list pointer to list
+ * @param[in,out] node pointer to node
+ * @param[in,out] val pointer to val
+ * @param[in,out] usr_data pointer to usr data
+ * @return @see UtilsListResult
+ */
+static UtilsListResult list_process_remove(void *list, void *node, void *val, void *usr_data) {
+  static int i = 0;
+  if (*reinterpret_cast<int *>(val) != i++) {
+    return LIST_TRAVERSE_BREAK;
+  }
+  utils_list_remove(list, node);
+  return LIST_TRAVERSE_CONTINUE;
+}
+
+/**
+ * @brief Test list process.
  *
  */
-TEST_F(UtilsListTest, list_iterator) {
-  void *iter = utils_list_iterator_create(self_list, LIST_HEAD);
-  ASSERT_NE(iter, nullptr);
-
-  void *node = NULL;
-  int i = 0;
-
-  while ((node = utils_list_iterator_next(iter))) {
-    ASSERT_EQ(utils_list_len_get(self_list), 10 - i);
-    ASSERT_EQ(*(int *)(utils_list_get_val(node)), i++);
-    utils_list_remove(self_list, node);
-  }
+TEST_F(UtilsListTest, list_process) {
+  utils_list_process(self_list, LIST_HEAD, list_process_remove, NULL);
   ASSERT_EQ(utils_list_len_get(self_list), 0);
-  utils_list_iterator_destroy(iter);
 }
 
 /**

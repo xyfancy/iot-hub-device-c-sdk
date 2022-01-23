@@ -230,6 +230,7 @@ static int _qcloud_iot_mqtt_client_init(QcloudIotClient *client, const MQTTInitP
     client->read_buf_size       = QCLOUD_IOT_MQTT_RX_BUF_LEN;
     client->event_handle        = params->event_handle;
     client->auto_connect_enable = params->auto_connect_enable;
+    client->default_subscribe   = params->default_subscribe;
 
     client->lock_generic = HAL_MutexCreate();
     if (!client->lock_generic) {
@@ -320,6 +321,10 @@ void *IOT_MQTT_Construct(const MQTTInitParams *params)
         goto exit;
     }
 
+    if (!params->connect_when_construct) {
+        return client;
+    }
+
     rc = qcloud_iot_mqtt_connect(client);
     if (rc) {
         Log_e("mqtt connect with id: %s failed: %d", STRING_PTR_PRINT_SANITY_CHECK(client->conn_id), rc);
@@ -332,6 +337,21 @@ exit:
     _qcloud_iot_mqtt_client_deinit(client);
     HAL_Free(client);
     return NULL;
+}
+
+/**
+ * @brief Connect Mqtt server if not connect.
+ *
+ * @param[in,out] client pointer to mqtt client pointer, should using the pointer of IOT_MQTT_Construct return.
+ * @return @see IotReturnCode
+ */
+int IOT_MQTT_Connect(void *client)
+{
+    POINTER_SANITY_CHECK(client, QCLOUD_ERR_INVAL);
+    if (!get_client_conn_state(client)) {
+        IOT_FUNC_EXIT_RC(qcloud_iot_mqtt_connect(client));
+    }
+    IOT_FUNC_EXIT_RC(QCLOUD_RET_SUCCESS);
 }
 
 /**
@@ -424,7 +444,7 @@ int IOT_MQTT_Subscribe(void *client, const char *topic_filter, const SubscribePa
 
     QcloudIotClient *mqtt_client = (QcloudIotClient *)client;
 
-    if (!get_client_conn_state(client)) {
+    if (!get_client_conn_state(client) && !mqtt_client->default_subscribe) {
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_NO_CONN);
     }
 
@@ -508,8 +528,15 @@ void *IOT_MQTT_GetSubUsrData(void *client, const char *topic_filter)
  */
 int IOT_MQTT_SubscribeSync(void *client, const char *topic_filter, const SubscribeParams *params)
 {
+    POINTER_SANITY_CHECK(client, QCLOUD_ERR_INVAL);
+    POINTER_SANITY_CHECK(params, QCLOUD_ERR_INVAL);
+    STRING_PTR_SANITY_CHECK(topic_filter, QCLOUD_ERR_INVAL);
+
     int rc;
-    int cnt_sub = QCLOUD_IOT_MQTT_WAIT_ACK_TIMEOUT / QCLOUD_IOT_MQTT_YIELD_TIMEOUT;
+
+    QcloudIotClient *mqtt_client = (QcloudIotClient *)client;
+
+    int cnt_sub = mqtt_client->command_timeout_ms / QCLOUD_IOT_MQTT_YIELD_TIMEOUT;
 
     if (IOT_MQTT_IsSubReady(client, topic_filter)) {
         // if already sub, free the user data
@@ -525,13 +552,13 @@ int IOT_MQTT_SubscribeSync(void *client, const char *topic_filter, const Subscri
         return rc;
     }
 
-    do {
+    while (cnt_sub-- >= 0 && rc >= 0 && !IOT_MQTT_IsSubReady(client, topic_filter)) {
         /**
          * @brief wait for subscription result
          *
          */
         rc = IOT_MQTT_Yield(client, QCLOUD_IOT_MQTT_YIELD_TIMEOUT);
-    } while (cnt_sub-- >= 0 && !rc && !IOT_MQTT_IsSubReady(client, topic_filter));
+    }
     return IOT_MQTT_IsSubReady(client, topic_filter) ? QCLOUD_RET_SUCCESS : QCLOUD_ERR_FAILURE;
 }
 

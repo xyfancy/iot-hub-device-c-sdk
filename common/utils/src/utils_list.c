@@ -86,6 +86,29 @@ static inline void _list_unlock(List *list)
 }
 
 /**
+ * @brief Delete the node in list and release the resource.
+ *
+ * @param[in] list pointer to list
+ * @param[in] node pointer to node needed remove
+ */
+static void _list_remove(void *list, void *node)
+{
+    List *    self      = (List *)list;
+    ListNode *list_node = (ListNode *)node;
+
+    list_node->prev ? (list_node->prev->next = list_node->next) : (self->head = list_node->next);
+
+    list_node->next ? (list_node->next->prev = list_node->prev) : (self->tail = list_node->prev);
+
+    self->func.list_free(list_node->val);
+    self->func.list_free(list_node);
+
+    if (self->len) {
+        --self->len;
+    }
+}
+
+/**
  * @brief Create list with max len, return NULL if fail.
  *
  * @param[in] func function needed by list
@@ -174,21 +197,23 @@ void *utils_list_push(void *list, void *val)
 {
     List *self = (List *)list;
 
+    _list_lock(self);
+
     if (!val || self->len >= self->max_len) {
+        _list_unlock(self);
         return NULL;
     }
 
     ListNode *node;
     node = self->func.list_malloc(sizeof(ListNode));
     if (!node) {
+        _list_unlock(self);
         return NULL;
     }
 
     node->prev = NULL;
     node->next = NULL;
     node->val  = val;
-
-    _list_lock(self);
 
     if (self->len) {
         node->prev       = self->tail;
@@ -220,6 +245,7 @@ void *utils_list_pop(void *list)
     _list_lock(self);
 
     if (!self->len) {
+        _list_unlock(self);
         return NULL;
     }
 
@@ -241,17 +267,6 @@ void *utils_list_pop(void *list)
 }
 
 /**
- * @brief Get the value of node.
- *
- * @param[in] node
- * @return value of node
- */
-void *utils_list_get_val(void *node)
-{
-    return ((ListNode *)node)->val;
-}
-
-/**
  * @brief Delete the node in list and release the resource.
  *
  * @param[in] list pointer to list
@@ -259,80 +274,53 @@ void *utils_list_get_val(void *node)
  */
 void utils_list_remove(void *list, void *node)
 {
-    List *    self      = (List *)list;
-    ListNode *list_node = (ListNode *)node;
-
+    List *self = (List *)list;
     _list_lock(self);
-
-    list_node->prev ? (list_node->prev->next = list_node->next) : (self->head = list_node->next);
-
-    list_node->next ? (list_node->next->prev = list_node->prev) : (self->tail = list_node->prev);
-
-    self->func.list_free(list_node->val);
-    self->func.list_free(list_node);
-
-    if (self->len) {
-        --self->len;
-    }
-
+    _list_remove(self, node);
     _list_unlock(self);
 }
 
 /**
- * @brief Create a new ListIterator and set the ListDirection and lock if success.
+ * @brief Process list using handle function.
  *
  * @param[in] list pointer to list
- * @param[in] direction direction to iterate
- * @return pointer to iterator, NULL for failed
+ * @param[in] direction direction to traverse
+ * @param[in] handle process function @see OnNodeProcessHandle
+ * @param[in,out] usr_data usr data to pass to OnNodeProcessHandle
  */
-void *utils_list_iterator_create(void *list, uint8_t direction)
+void utils_list_process(void *list, uint8_t direction, OnNodeProcessHandle handle, void *usr_data)
 {
-    List *self = (List *)list;
+    int       rc;
+    ListNode *node = NULL;
+    List *    self = (List *)list;
+
     _list_lock(self);
 
-    ListNode *node = direction == LIST_HEAD ? self->head : self->tail;
-
-    ListIterator *iterator;
-
-    iterator = self->func.list_malloc(sizeof(ListIterator));
-    if (!iterator) {
-        _list_unlock(list);
-        return NULL;
+    if (!utils_list_len_get(list)) {
+        _list_unlock(self);
+        return;
     }
-    iterator->list      = self;
-    iterator->next      = node;
-    iterator->direction = direction;
+
+    ListIterator iterator = {
+        .direction = direction,
+        .list      = self,
+        .next      = direction == LIST_HEAD ? self->head : self->tail,
+    };
+
+    // traverse list to process
+    while ((node = iterator.next)) {
+        iterator.next = iterator.direction == LIST_HEAD ? node->next : node->prev;
+        if (!node->val) {
+            _list_remove(list, node);
+            continue;
+        }
+        // process node and val
+        if (handle) {
+            rc = handle(list, node, node->val, usr_data);
+            if (rc) {
+                break;
+            }
+        }
+    }
     _list_unlock(list);
-    return iterator;
-}
-
-/**
- * @brief Return pointer to next node
- *
- * @param[in] iterator pointer to iterator
- * @return pointer to next node
- */
-void *utils_list_iterator_next(void *iterator)
-{
-    ListIterator *self = (ListIterator *)iterator;
-    _list_lock(self->list);
-
-    ListNode *curr = self->next;
-    if (curr) {
-        self->next = self->direction == LIST_HEAD ? curr->next : curr->prev;
-    }
-    _list_unlock(self->list);
-    return curr;
-}
-
-/**
- * @brief Release the ListIterator and unlock.
- *
- * @param[in] iterator pointer to iterator
- */
-void utils_list_iterator_destroy(void *iterator)
-{
-    ListIterator *self = (ListIterator *)iterator;
-    List *        list = self->list;
-    list->func.list_free(iterator);
 }
