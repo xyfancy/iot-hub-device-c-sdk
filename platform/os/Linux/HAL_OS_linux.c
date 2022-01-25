@@ -391,12 +391,14 @@ typedef struct {
  */
 void *HAL_MailQueueInit(void *pool, size_t mail_size, int mail_count)
 {
+    static key_t sg_mail_key = 1234;
+
     MailQueueHandle *handle = HAL_Malloc(sizeof(MailQueueHandle));
     if (!handle) {
         return NULL;
     }
 
-    handle->msg_id = msgget((key_t)0700, IPC_CREAT);
+    handle->msg_id = msgget(sg_mail_key++, 0666 | IPC_CREAT);
     if (handle->msg_id == -1) {
         HAL_Free(handle);
         return NULL;
