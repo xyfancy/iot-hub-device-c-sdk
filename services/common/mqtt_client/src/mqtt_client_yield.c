@@ -371,8 +371,6 @@ static int _handle_reconnect(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
 
-    uint8_t isPhysicalLayerConnected = 1;
-
     int rc = QCLOUD_RET_MQTT_RECONNECTED;
 
     MQTTEventMsg msg;
@@ -382,34 +380,28 @@ static int _handle_reconnect(QcloudIotClient *client)
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_ATTEMPTING_RECONNECT);
     }
 
-    if (client->network_stack.is_connected) {
-        isPhysicalLayerConnected = client->network_stack.is_connected(&(client->network_stack));  // always return 1
-    }
-
-    if (isPhysicalLayerConnected) {
-        rc = qcloud_iot_mqtt_attempt_reconnect(client);
-        if (QCLOUD_RET_MQTT_RECONNECTED == rc) {
-            Log_e("attempt to reconnect success.");
-            // notify event
-            if (client->event_handle.h_fp) {
-                msg.event_type = MQTT_EVENT_RECONNECT;
-                msg.msg        = NULL;
-                client->event_handle.h_fp(client, client->event_handle.context, &msg);
-            }
-            IOT_FUNC_EXIT_RC(rc);
+    rc = qcloud_iot_mqtt_attempt_reconnect(client);
+    if (QCLOUD_RET_MQTT_RECONNECTED == rc) {
+        Log_e("attempt to reconnect success.");
+        // notify event
+        if (client->event_handle.h_fp) {
+            msg.event_type = MQTT_EVENT_RECONNECT;
+            msg.msg        = NULL;
+            client->event_handle.h_fp(client, client->event_handle.context, &msg);
         }
-
-        Log_e("attempt to reconnect failed, errCode: %d", rc);
-        rc = QCLOUD_ERR_MQTT_ATTEMPTING_RECONNECT;
+        IOT_FUNC_EXIT_RC(rc);
     }
+
+    Log_e("attempt to reconnect failed, errCode: %d", rc);
 
     client->current_reconnect_wait_interval *= 2;
 
     if (MAX_RECONNECT_WAIT_INTERVAL < client->current_reconnect_wait_interval) {
         IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_RECONNECT_TIMEOUT);
     }
+
     HAL_Timer_CountdownMs(&(client->reconnect_delay_timer), client->current_reconnect_wait_interval);
-    IOT_FUNC_EXIT_RC(rc);
+    IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_ATTEMPTING_RECONNECT);
 }
 
 /**

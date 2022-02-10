@@ -1,7 +1,7 @@
 ###################### CONFIG  #####################################
 
 # 开启单元测试
-set(CONFIG_IOT_TEST ON)
+set(CONFIG_IOT_TEST OFF)
 
 # 打开IOT DEBUG
 set(CONFIG_IOT_DEBUG OFF)

@@ -36,7 +36,7 @@
  */
 typedef struct {
     IotFileManageCallback callback;
-    void *                usr_data;
+    void                 *usr_data;
 } FileManageContext;
 
 /**
@@ -372,9 +372,10 @@ int IOT_FileManage_ReportFileList(void *client, char *buf, int buf_len, const Io
         }
 
         if (file_list[i].file_name[0] != '\0') {
-            len += HAL_Snprintf(
-                buf + len, buf_len - len, "{\"resource_name\":\"%s\",\"version\":\"%s\",\"resource_type\":\"%s\"},",
-                file_list->file_name, file_list->file_version, sg_file_manage_file_type_str[file_list->file_type]);
+            len += HAL_Snprintf(buf + len, buf_len - len,
+                                "{\"resource_name\":\"%s\",\"version\":\"%s\",\"resource_type\":\"%s\"},",
+                                file_list[i].file_name, file_list[i].file_version,
+                                sg_file_manage_file_type_str[file_list[i].file_type]);
         }
     }
     if (buf[len - 1] != '[') {

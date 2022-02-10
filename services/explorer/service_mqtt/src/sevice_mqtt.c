@@ -51,7 +51,7 @@ typedef struct {
  *
  */
 typedef struct {
-    const char *       method;
+    const char        *method;
     int                method_len;
     const MQTTMessage *message;
 } ServiceListContext;
@@ -172,7 +172,7 @@ static UtilsListResult _server_list_unregister_callback(void *list, void *node, 
 static UtilsListResult _server_list_process_message_callback(void *list, void *node, void *val, void *usr_data)
 {
     ServiceRegisterParams *params  = (ServiceRegisterParams *)val;
-    ServiceListContext *   context = (ServiceListContext *)usr_data;
+    ServiceListContext    *context = (ServiceListContext *)usr_data;
 
     for (int i = 0; i < params->method_num; i++) {
         int len = strlen(params->method_list[i]);
@@ -335,7 +335,7 @@ int service_mqtt_service_register(void *client, const ServiceRegisterParams *par
     }
 
     ServiceRegisterParams *register_params = (ServiceRegisterParams *)HAL_Malloc(sizeof(ServiceRegisterParams));
-    if (!params) {
+    if (!register_params) {
         return QCLOUD_ERR_MALLOC;
     }
     memcpy(register_params, params, sizeof(ServiceRegisterParams));
