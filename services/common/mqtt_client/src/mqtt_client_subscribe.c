@@ -71,7 +71,7 @@ static int _push_sub_info_to_list(QcloudIotClient *client, int packet_len, uint1
                                   const SubTopicHandle *handler, void **node)
 {
     IOT_FUNC_ENTRY;
-    void *            list     = client->list_sub_wait_ack;
+    void             *list     = client->list_sub_wait_ack;
     QcloudIotSubInfo *sub_info = NULL;
 
     sub_info = (QcloudIotSubInfo *)HAL_Malloc(sizeof(QcloudIotSubInfo) + packet_len);
@@ -110,7 +110,7 @@ static int _push_sub_info_to_list(QcloudIotClient *client, int packet_len, uint1
 static UtilsListResult _sub_wait_list_process_pop_info(void *list, void *node, void *val, void *usr_data)
 {
     QcloudIotSubConext *sub_context = (QcloudIotSubConext *)usr_data;
-    QcloudIotSubInfo *  sub_info    = (QcloudIotSubInfo *)val;
+    QcloudIotSubInfo   *sub_info    = (QcloudIotSubInfo *)val;
 
     if (sub_info->packet_id == sub_context->packet_id) {
         memcpy(&sub_context->handler, &sub_info->handler, sizeof(SubTopicHandle));
@@ -133,7 +133,7 @@ static UtilsListResult _sub_wait_list_process_check_timeout(void *list, void *no
 {
     MQTTEventMsg      msg;
     QcloudIotSubInfo *sub_info = (QcloudIotSubInfo *)val;
-    QcloudIotClient * client   = (QcloudIotClient *)usr_data;
+    QcloudIotClient  *client   = (QcloudIotClient *)usr_data;
 
     // check the request if timeout or not
     if (HAL_Timer_Remain(&sub_info->sub_start_time) > 0) {
@@ -300,8 +300,8 @@ int qcloud_iot_mqtt_subscribe(QcloudIotClient *client, const char *topic_filter,
     IOT_FUNC_ENTRY;
     int            rc, packet_len, qos = params->qos;
     uint16_t       packet_id;
-    char *         topic_filter_stored;
-    void *         node = NULL;
+    char          *topic_filter_stored;
+    void          *node = NULL;
     SubTopicHandle sub_handle;
 
     // topic filter should be valid in the whole sub life
@@ -382,8 +382,8 @@ int qcloud_iot_mqtt_handle_suback(QcloudIotClient *client)
     // pop sub info and get sub handle
     _pop_sub_info_from_list(client, packet_id, &sub_handle);
     if (!sub_handle.topic_filter) {
-        Log_e("can't get sub handle from list!");
-        IOT_FUNC_EXIT_RC(QCLOUD_ERR_MQTT_SUB);
+        Log_w("can't get sub handle from list!");
+        IOT_FUNC_EXIT_RC(QCLOUD_RET_SUCCESS);  // in case of resubscribe when reconnect
     }
 
     // check return code in SUBACK packet: 0x00(QOS0, SUCCESS),0x01(QOS1, SUCCESS),0x02(QOS2,SUCCESS),0x80(Failure)
@@ -424,7 +424,7 @@ int qcloud_iot_mqtt_unsubscribe(QcloudIotClient *client, const char *topic_filte
     int      rc, packet_len;
     uint16_t packet_id;
 
-    void *         node = NULL;
+    void          *node = NULL;
     SubTopicHandle sub_handle;
     memset(&sub_handle, 0, sizeof(SubTopicHandle));
 
@@ -456,7 +456,6 @@ int qcloud_iot_mqtt_unsubscribe(QcloudIotClient *client, const char *topic_filte
     }
 
     // add node into sub ack wait list
-
     rc = _push_sub_info_to_list(client, packet_len, packet_id, UNSUBSCRIBE, &sub_handle, &node);
     if (rc) {
         Log_e("push unsubscribe info failed!");
@@ -530,18 +529,32 @@ void qcloud_iot_mqtt_check_sub_timeout(QcloudIotClient *client)
 int qcloud_iot_mqtt_resubscribe(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
-    int   rc, itr = 0;
-    char *topic = NULL;
+    int             rc, packet_len, qos, itr = 0;
+    uint16_t        packet_id;
+    SubTopicHandle *sub_handle;
 
     for (itr = 0; itr < MAX_MESSAGE_HANDLERS; itr++) {
-        topic = (char *)client->sub_handles[itr].topic_filter;
-        if (!topic) {
+        sub_handle = &client->sub_handles[itr];
+        if (!sub_handle->topic_filter) {
             continue;
         }
 
-        rc = qcloud_iot_mqtt_subscribe(client, topic, &(client->sub_handles[itr].params));
-        if (rc < 0) {
-            Log_e("resubscribe topic[%s] failed %d!", topic, rc);
+        packet_id = get_next_packet_id(client);
+        Log_d("subscribe topic_name=%s|packet_id=%d", sub_handle->topic_filter, packet_id);
+
+        HAL_MutexLock(client->lock_write_buf);
+        qos        = sub_handle->params.qos;
+        packet_len = mqtt_subscribe_packet_serialize(client->write_buf, client->write_buf_size, packet_id, 1,
+                                                     &sub_handle->topic_filter, &qos);
+        if (packet_len < 0) {
+            HAL_MutexUnlock(client->lock_write_buf);
+            continue;
+        }
+
+        // send packet
+        rc = send_mqtt_packet(client, packet_len);
+        HAL_MutexUnlock(client->lock_write_buf);
+        if (rc) {
             IOT_FUNC_EXIT_RC(rc);
         }
     }

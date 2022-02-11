@@ -241,7 +241,7 @@ static void _file_manage_del_file_callback(UtilsJsonValue file_name, UtilsJsonVa
 
 static void _file_manage_report_file_version_reponse_callback(UtilsJsonValue file_list, int result_code, void *usr_data)
 {
-    Log_i("recv file_list=%.*s|result_code=%d", file_list, result_code);
+    Log_i("recv file_list=%.*s|result_code=%d", file_list.value_len, file_list.value, result_code);
 }
 
 static void _file_manage_request_file_url_response_callback(UtilsJsonValue url, UtilsJsonValue file_token,
