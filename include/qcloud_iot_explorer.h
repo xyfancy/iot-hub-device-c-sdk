@@ -41,6 +41,7 @@ extern "C" {
 
 // service header file
 #include "qcloud_iot_data_template.h"
+#include "qcloud_iot_file_manage.h"
 
 #ifdef __cplusplus
 }

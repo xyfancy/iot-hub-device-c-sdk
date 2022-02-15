@@ -105,22 +105,24 @@ typedef struct {
  *
  */
 typedef struct {
-    DeviceInfo *     device_info;            /**< device info */
-    const char *     host;                   /**< host for user, null for default using QCLOUD_IOT_MQTT_DIRECT_DOMAIN */
-    uint32_t         command_timeout;        /**< timeout value (unit: ms) for MQTT connect/pub/sub/yield */
-    uint32_t         keep_alive_interval_ms; /**< MQTT keep alive time interval in millisecond */
-    uint8_t          clean_session;          /**< flag of clean session, 1 clean, 0 not clean */
-    uint8_t          auto_connect_enable;    /**< flag of auto reconnection, 1 is enable and recommended */
-    MQTTEventHandler event_handle;           /**< event callback */
+    DeviceInfo *device_info;            /**< device info */
+    const char *host;                   /**< host for user, null for default using QCLOUD_IOT_MQTT_DIRECT_DOMAIN */
+    uint32_t    command_timeout;        /**< timeout value (unit: ms) for MQTT connect/pub/sub/yield */
+    uint32_t    keep_alive_interval_ms; /**< MQTT keep alive time interval in millisecond */
+    uint8_t     clean_session;          /**< flag of clean session, 1 clean, 0 not clean */
+    uint8_t     auto_connect_enable;    /**< flag of auto reconnection, 1 is enable and recommended */
+    uint8_t     connect_when_construct; /**< 1 is enable when no using pre-process before connect */
+    uint8_t default_subscribe; /**< 1 is enable when clean session is 0, no subscribe packet send, only add subhandle */
+    MQTTEventHandler event_handle; /**< event callback */
 } MQTTInitParams;
 
 /**
  * Default MQTT init parameters
  */
 
-#define DEFAULT_MQTT_INIT_PARAMS                  \
-    {                                             \
-        NULL, NULL, 5000, 240 * 1000, 1, 1, { 0 } \
+#define DEFAULT_MQTT_INIT_PARAMS                        \
+    {                                                   \
+        NULL, NULL, 5000, 240 * 1000, 1, 1, 1, 0, { 0 } \
     }
 
 /**
@@ -220,6 +222,14 @@ typedef struct {
  * @return a valid MQTT client handle when success, or NULL otherwise
  */
 void *IOT_MQTT_Construct(const MQTTInitParams *params);
+
+/**
+ * @brief Connect Mqtt server if not connect.
+ *
+ * @param[in,out] client pointer to mqtt client pointer, should using the pointer of IOT_MQTT_Construct return.
+ * @return @see IotReturnCode
+ */
+int IOT_MQTT_Connect(void *client);
 
 /**
  * @brief Close connection and destroy MQTT client.

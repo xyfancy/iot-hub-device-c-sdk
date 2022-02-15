@@ -258,7 +258,13 @@ int HAL_TCP_Read(int fd, uint8_t *buf, uint32_t len, uint32_t timeout_ms, size_t
         }
 
         rc = recv(fd, buf + len_recv, len - len_recv, 0);
-        if (rc < 0) {
+        if (rc <= 0) {
+            if (!rc) {
+                Log_e("connection is closed by server");
+                rc = QCLOUD_ERR_TCP_PEER_SHUTDOWN;
+                break;
+            }
+
             if (EINTR == errno) {
                 Log_e("EINTR be caught");
                 continue;

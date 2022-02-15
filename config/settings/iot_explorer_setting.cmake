@@ -19,11 +19,12 @@ set(CONFIG_AUTH_WITH_NOTLS OFF)
 set(CONFIG_DEBUG_DEV_INFO_USED ON)
 
 # 是否使能多线程
-set(CONFIG_MULTITHREAD_ENABLED OFF)
+set(CONFIG_MULTITHREAD_ENABLED ON)
 
 option(IOT_DEBUG "Enable IOT_DEBUG" ${CONFIG_IOT_DEBUG})
 option(DEBUG_DEV_INFO_USED "Enable DEBUG_DEV_INFO_USED" ${CONFIG_DEBUG_DEV_INFO_USED})
 option(AUTH_WITH_NO_TLS "Enable AUTH_WITH_NO_TLS" ${CONFIG_AUTH_WITH_NOTLS})
+option(MULTITHREAD_ENABLED "Enable AUTH_WITH_NO_TLS" ${CONFIG_MULTITHREAD_ENABLED})
 
 if(${CONFIG_AUTH_MODE} STREQUAL  "KEY")
 	option(AUTH_MODE_KEY "Enable AUTH_MODE_KEY" ON)
@@ -94,6 +95,24 @@ include_directories(${inc_common})
 # add library libiot_common.a
 add_library(iot_common STATIC ${src_common})
 
+###################### 3rd MODULE ####################################
+
+# mbedtls
+if(${CONFIG_AUTH_MODE} STREQUAL  "KEY" )
+	include_directories(
+		${PROJECT_SOURCE_DIR}/3rd/mbedtls/mbedtls/include
+		${PROJECT_SOURCE_DIR}/3rd/mbedtls/port/inc
+	)
+	add_definitions("-DMBEDTLS_CONFIG_FILE=\"qcloud_iot_tls_psk_config.h\"")
+endif()
+
+if(${CONFIG_AUTH_WITH_NOTLS} STREQUAL "OFF")
+	# libmbedtls.a
+	add_subdirectory(${PROJECT_SOURCE_DIR}/3rd/mbedtls)
+	set(libsdk ${libsdk} mbedtls)
+endif()
+
+
 ###################### SERVICE MODULE ####################################
 set(src_services CACHE INTERNAL "")
 set(inc_services CACHE INTERNAL "")
@@ -114,6 +133,9 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/services/common/system)
 
 # 是否使能数据模板功能
 add_subdirectory(${PROJECT_SOURCE_DIR}/services/explorer/data_template)
+
+# 是否系统服务
+add_subdirectory(${PROJECT_SOURCE_DIR}/services/explorer/service_mqtt)
 
 # 是否打开RRPC功能
 #add_subdirectory()
@@ -148,23 +170,6 @@ include_directories(${inc_services})
 
 # add library libiot_services.a
 add_library(iot_services STATIC ${src_services})
-
-###################### 3rd MODULE ####################################
-
-# mbedtls
-if(${CONFIG_AUTH_MODE} STREQUAL  "KEY" )
-	include_directories(
-		${PROJECT_SOURCE_DIR}/3rd/mbedtls/mbedtls/include
-		${PROJECT_SOURCE_DIR}/3rd/mbedtls/port/inc
-	)
-	add_definitions("-DMBEDTLS_CONFIG_FILE=\"qcloud_iot_tls_psk_config.h\"")
-endif()
-
-if(${CONFIG_AUTH_WITH_NOTLS} STREQUAL "OFF")
-	# libmbedtls.a
-	add_subdirectory(${PROJECT_SOURCE_DIR}/3rd/mbedtls)
-	set(libsdk ${libsdk} mbedtls)
-endif()
 
 ###################### UINT TEST ####################################
 if(${CONFIG_IOT_TEST} STREQUAL "ON")

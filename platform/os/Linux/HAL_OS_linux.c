@@ -49,13 +49,36 @@
 void *HAL_MutexCreate(void)
 {
 #ifdef MULTITHREAD_ENABLED
-    int              err_num;
+    int err_num;
+
+    /**
+     * @brief
+     *
+     * @ref https://manpages.debian.org/jessie/glibc-doc/pthread_mutex_lock.3.en.html
+     *
+     * If the mutex is already locked by the calling thread, the behavior of pthread_mutex_lock depends on the
+     * kind of the mutex. If the mutex is of the ``fast'' kind, the calling thread is suspended until the mutex is
+     * unlocked, thus effectively causing the calling thread to deadlock. If the mutex is of the ``error checking''
+     * kind, pthread_mutex_lock returns immediately with the error code EDEADLK. If the mutex is of the ``recursive''
+     * kind, pthread_mutex_lock succeeds and returns immediately, recording the number of times the calling thread has
+     * locked the mutex. An equal number of pthread_mutex_unlock operations must be performed before the mutex returns
+     * to the unlocked state.
+     *
+     */
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE_NP);
+
     pthread_mutex_t *mutex = (pthread_mutex_t *)HAL_Malloc(sizeof(pthread_mutex_t));
-    if (NULL == mutex) {
+    if (!mutex) {
         return NULL;
     }
 
-    if (0 != (err_num = pthread_mutex_init(mutex, NULL))) {
+    err_num = pthread_mutex_init(mutex, &attr);
+
+    pthread_mutexattr_destroy(&attr);
+
+    if (err_num) {
         HAL_Printf("%s: create mutex failed\n", __FUNCTION__);
         HAL_Free(mutex);
         return NULL;
@@ -77,10 +100,9 @@ void HAL_MutexDestroy(void *mutex)
     if (!mutex) {
         return;
     }
-
 #ifdef MULTITHREAD_ENABLED
-    int err_num;
-    if (0 != (err_num = pthread_mutex_destroy((pthread_mutex_t *)mutex))) {
+    int err_num = pthread_mutex_destroy((pthread_mutex_t *)mutex);
+    if (err_num) {
         HAL_Printf("%s: destroy mutex failed\n", __FUNCTION__);
     }
 
@@ -97,9 +119,12 @@ void HAL_MutexDestroy(void *mutex)
  */
 void HAL_MutexLock(void *mutex)
 {
+    if (!mutex) {
+        return;
+    }
 #ifdef MULTITHREAD_ENABLED
-    int err_num;
-    if (0 != (err_num = pthread_mutex_lock((pthread_mutex_t *)mutex))) {
+    int err_num = pthread_mutex_lock((pthread_mutex_t *)mutex);
+    if (err_num) {
         HAL_Printf("%s: lock mutex failed\n", __FUNCTION__);
     }
 #else
@@ -115,6 +140,9 @@ void HAL_MutexLock(void *mutex)
  */
 int HAL_MutexTryLock(void *mutex)
 {
+    if (!mutex) {
+        return -1;
+    }
 #ifdef MULTITHREAD_ENABLED
     return pthread_mutex_trylock((pthread_mutex_t *)mutex);
 #else
@@ -129,6 +157,9 @@ int HAL_MutexTryLock(void *mutex)
  */
 void HAL_MutexUnlock(void *mutex)
 {
+    if (!mutex) {
+        return;
+    }
 #ifdef MULTITHREAD_ENABLED
     int err_num;
     if (0 != (err_num = pthread_mutex_unlock((pthread_mutex_t *)mutex))) {
@@ -360,12 +391,14 @@ typedef struct {
  */
 void *HAL_MailQueueInit(void *pool, size_t mail_size, int mail_count)
 {
+    static key_t sg_mail_key = 1234;
+
     MailQueueHandle *handle = HAL_Malloc(sizeof(MailQueueHandle));
     if (!handle) {
         return NULL;
     }
 
-    handle->msg_id = msgget((key_t)0700, IPC_CREAT);
+    handle->msg_id = msgget(sg_mail_key++, 0666 | IPC_CREAT);
     if (handle->msg_id == -1) {
         HAL_Free(handle);
         return NULL;
@@ -398,9 +431,9 @@ void HAL_MailQueueDeinit(void *mail_q)
 int HAL_MailQueueSend(void *mail_q, void *buf, size_t size)
 {
     MailQueueHandle *handle = (MailQueueHandle *)mail_q;
-    MailBuffer       data   = {
-        .type = 1,
-    };
+    MailBuffer       data;
+    memset(&data, 0, sizeof(MailBuffer));
+    data.type = 1;
     memcpy(data.data, buf, size);
     return msgsnd(handle->msg_id, &data, size, 0);
 }
@@ -417,9 +450,10 @@ int HAL_MailQueueSend(void *mail_q, void *buf, size_t size)
 int HAL_MailQueueRecv(void *mail_q, void *buf, size_t *size, int timeout_ms)
 {
     MailQueueHandle *handle = (MailQueueHandle *)mail_q;
-    MailBuffer       data   = {
-        .type = 1,
-    };
+    MailBuffer       data;
+    memset(&data, 0, sizeof(MailBuffer));
+    data.type = 1;
+
     *size  = handle->msg_size;
     int rc = msgrcv(handle->msg_id, &data, handle->msg_size, 0, 0);
     memcpy(buf, data.data, handle->msg_size);

@@ -53,9 +53,9 @@ typedef enum {
 static int _data_template_topic_generate(char *buf, int buf_len, DataTemplateDirection direction, DataTemplateType type,
                                          const char *product_id, const char *device_name)
 {
-    static const char *sg_topic_method[] = {"property", "event", "action"};
+    const char *topic_method[] = {"property", "event", "action"};
     // $thing/down/property/C283SMY3W3/test1
-    return HAL_Snprintf(buf, buf_len, "$thing/%s/%s/%s/%s", direction ? "down" : "up", sg_topic_method[type],
+    return HAL_Snprintf(buf, buf_len, "$thing/%s/%s/%s/%s", direction ? "down" : "up", topic_method[type],
                         STRING_PTR_PRINT_SANITY_CHECK(product_id), STRING_PTR_PRINT_SANITY_CHECK(device_name));
 }
 
@@ -92,7 +92,7 @@ int data_template_topic_check_and_sub(void *client, DataTemplateType type, OnMes
 
     rc = IOT_MQTT_SubscribeSync(client, data_template_topic, &sub_params);
     if (rc) {
-        Log_d("subscribe topic %s failed!", data_template_topic);
+        Log_e("subscribe topic %s failed!", data_template_topic);
         HAL_Free(data_template_context);
     }
     return rc;

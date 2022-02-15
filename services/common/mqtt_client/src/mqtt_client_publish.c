@@ -68,6 +68,59 @@ static int _push_pub_info_to_list(QcloudIotClient *client, int packet_len, uint1
 }
 
 /**
+ * @brief Check pub wait list timeout.
+ *
+ * @param[in,out] list pointer to pub wait ack list.
+ * @param[in] node pointer to list node
+ * @param[in] val pointer to value, @see QcloudIotPubInfo
+ * @param[in] usr_data @see QcloudIotClient
+ * @return @see UtilsListResult
+ */
+static UtilsListResult _pub_wait_list_process_check_timeout(void *list, void *node, void *val, void *usr_data)
+{
+    IOT_FUNC_ENTRY;
+
+    MQTTEventMsg      msg;
+    QcloudIotPubInfo *repub_info = (QcloudIotPubInfo *)val;
+    QcloudIotClient * client     = (QcloudIotClient *)usr_data;
+
+    // check the request if timeout or not
+    if (HAL_Timer_Remain(&repub_info->pub_start_time) > 0) {
+        IOT_FUNC_EXIT_RC(LIST_TRAVERSE_CONTINUE);
+    }
+
+    // notify timeout event
+    if (client->event_handle.h_fp) {
+        msg.event_type = MQTT_EVENT_PUBLISH_TIMEOUT;
+        msg.msg        = (void *)(uintptr_t)repub_info->packet_id;
+        client->event_handle.h_fp(client, client->event_handle.context, &msg);
+    }
+    utils_list_remove(list, node);
+    IOT_FUNC_EXIT_RC(LIST_TRAVERSE_CONTINUE);
+}
+
+/**
+ * @brief Remove info from pub wait list.
+ *
+ * @param[in,out] list pointer to pub wait ack list.
+ * @param[in] node pointer to list node
+ * @param[in] val pointer to value, @see QcloudIotPubInfo
+ * @param[in] usr_data pointer to packet id
+ * @return @see UtilsListResult
+ */
+static UtilsListResult _pub_wait_list_process_remove_info(void *list, void *node, void *val, void *usr_data)
+{
+    IOT_FUNC_ENTRY;
+
+    QcloudIotPubInfo *repub_info = (QcloudIotPubInfo *)val;
+    if (repub_info->packet_id == *((uint16_t *)usr_data)) {
+        utils_list_remove(list, node);
+        IOT_FUNC_EXIT_RC(LIST_TRAVERSE_BREAK);
+    }
+    IOT_FUNC_EXIT_RC(LIST_TRAVERSE_CONTINUE);
+}
+
+/**
  * @brief Remove node signed with packet id from publish ACK wait list.
  *
  * @param[in,out] client pointer to mqtt_client
@@ -75,34 +128,7 @@ static int _push_pub_info_to_list(QcloudIotClient *client, int packet_len, uint1
  */
 static void _remove_pub_info_from_list(QcloudIotClient *client, uint16_t packet_id)
 {
-    void *node, *iter = NULL;
-    void *list = client->list_pub_wait_ack;
-
-    QcloudIotPubInfo *repub_info;
-
-    if (!utils_list_len_get(list)) {
-        return;
-    }
-
-    iter = utils_list_iterator_create(list, LIST_HEAD);
-    if (!iter) {
-        return;
-    }
-
-    while ((node = utils_list_iterator_next(iter))) {
-        repub_info = (QcloudIotPubInfo *)utils_list_get_val(node);
-        if (!repub_info) {
-            Log_e("node's value is invalid!");
-            utils_list_remove(list, node);
-            continue;
-        }
-
-        if (repub_info->packet_id == packet_id) {
-            utils_list_remove(list, node);
-        }
-    }
-
-    utils_list_iterator_destroy(iter);
+    utils_list_process(client->list_pub_wait_ack, LIST_HEAD, _pub_wait_list_process_remove_info, &packet_id);
 }
 
 /**
@@ -366,43 +392,6 @@ int qcloud_iot_mqtt_handle_puback(QcloudIotClient *client)
 void qcloud_iot_mqtt_check_pub_timeout(QcloudIotClient *client)
 {
     IOT_FUNC_ENTRY;
-    void *node, *iter = NULL;
-    void *list = client->list_pub_wait_ack;
-
-    MQTTEventMsg      msg;
-    QcloudIotPubInfo *repub_info;
-
-    if (!utils_list_len_get(list)) {
-        return;
-    }
-
-    iter = utils_list_iterator_create(list, LIST_HEAD);
-    if (!iter) {
-        Log_e("new list iterator failed!");
-        return;
-    }
-
-    while ((node = utils_list_iterator_next(iter))) {
-        repub_info = (QcloudIotPubInfo *)utils_list_get_val(node);
-        if (!repub_info) {
-            Log_e("node's value is invalid!");
-            utils_list_remove(list, node);
-            continue;
-        }
-
-        // check the request if timeout or not
-        if (HAL_Timer_Remain(&repub_info->pub_start_time) > 0) {
-            continue;
-        }
-
-        // notify timeout event
-        if (client->event_handle.h_fp) {
-            msg.event_type = MQTT_EVENT_PUBLISH_TIMEOUT;
-            msg.msg        = (void *)(uintptr_t)repub_info->packet_id;
-            client->event_handle.h_fp(client, client->event_handle.context, &msg);
-        }
-        utils_list_remove(list, node);
-    }
-    utils_list_iterator_destroy(iter);
+    utils_list_process(client->list_pub_wait_ack, LIST_HEAD, _pub_wait_list_process_check_timeout, client);
     IOT_FUNC_EXIT;
 }

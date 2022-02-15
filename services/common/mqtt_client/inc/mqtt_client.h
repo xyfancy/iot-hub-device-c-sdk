@@ -108,10 +108,20 @@ typedef enum {
 } ConnStatus;
 
 /**
+ * @brief Subscribe status of topic.
+ *
+ */
+typedef enum {
+    SUB_ACK_NOT_RECEIVED = 0,
+    SUB_ACK_RECEIVED     = 1,
+} SubStatus;
+
+/**
  * @brief data structure for topic subscription handle
  */
 typedef struct {
     char *          topic_filter; /**< topic name, wildcard filter is supported */
+    SubStatus       status;       /**< status of sub handle */
     SubscribeParams params;       /**< params needed to subscribe */
 } SubTopicHandle;
 
@@ -132,6 +142,7 @@ typedef struct {
 
     MQTTEventHandler event_handle;        /**< callback for MQTT event */
     uint8_t          auto_connect_enable; /**< enable auto connection or not */
+    uint8_t          default_subscribe;   /**< no subscribe packet send, only add subhandle */
 
     void *lock_generic;      /**< mutex/lock for this client struture */
     void *lock_write_buf;    /**< mutex/lock for write buffer */

@@ -142,12 +142,12 @@ typedef void (*ThreadRunFunc)(void *arg);
  *
  */
 typedef struct {
-    char *        thread_name; /**< thread name */
-    uint32_t      thread_id;   /**< thread handle */
+    char         *thread_name; /**< thread name */
+    uint64_t      thread_id;   /**< thread handle */
     ThreadRunFunc thread_func; /**< thread entry function */
-    void *        user_arg;    /**< thread entry arg */
+    void         *user_arg;    /**< thread entry arg */
     uint16_t      priority;    /**< thread priority */
-    void *        stack_base;  /**< thread stack base */
+    void         *stack_base;  /**< thread stack base */
     uint32_t      stack_size;  /**< thread stack size */
 } ThreadParams;
 

@@ -132,9 +132,11 @@ int qcloud_iot_mqtt_attempt_reconnect(QcloudIotClient *client)
         IOT_FUNC_EXIT_RC(rc);
     }
 
+#if 0  // clean session is 0, user don't need resubscribe only if mqtt server error.
     if (!client->options.clean_session) {
         IOT_FUNC_EXIT_RC(QCLOUD_RET_MQTT_RECONNECTED);
     }
+#endif
 
     rc = qcloud_iot_mqtt_resubscribe(client);
     if (rc) {
