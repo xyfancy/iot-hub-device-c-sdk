@@ -431,9 +431,9 @@ void HAL_MailQueueDeinit(void *mail_q)
 int HAL_MailQueueSend(void *mail_q, void *buf, size_t size)
 {
     MailQueueHandle *handle = (MailQueueHandle *)mail_q;
-    MailBuffer       data   = {
-        .type = 1,
-    };
+    MailBuffer       data;
+    memset(&data, 0, sizeof(MailBuffer));
+    data.type = 1;
     memcpy(data.data, buf, size);
     return msgsnd(handle->msg_id, &data, size, 0);
 }
@@ -450,9 +450,10 @@ int HAL_MailQueueSend(void *mail_q, void *buf, size_t size)
 int HAL_MailQueueRecv(void *mail_q, void *buf, size_t *size, int timeout_ms)
 {
     MailQueueHandle *handle = (MailQueueHandle *)mail_q;
-    MailBuffer       data   = {
-        .type = 1,
-    };
+    MailBuffer       data;
+    memset(&data, 0, sizeof(MailBuffer));
+    data.type = 1;
+
     *size  = handle->msg_size;
     int rc = msgrcv(handle->msg_id, &data, handle->msg_size, 0, 0);
     memcpy(buf, data.data, handle->msg_size);
